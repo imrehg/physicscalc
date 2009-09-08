@@ -17,8 +17,8 @@ ph = pi/2
 # max number of modes - highest number in summation
 maxmode = 10
 
-# mode-lock sequence calculator
 def moder(maxmode,t,w,ph,phasemode,phr):
+    ''' Mode-lock squence calculator '''
     s1 = sin(w*t+ph)
     for n in range(2,maxmode+1):
         if phasemode == "rand":
