@@ -1,12 +1,17 @@
+Kerr
+====
+
 Theoretical calculations for Kerr-lens mode locked femtosecond Ti:Sapphire
 lasers.
 
 stability.py:
+-------------
 Based on Cerullo1994, calculate stability region and parameters for different
 configurations.
 
 
 Bibliography
+============
 
 @ARTICLE{Cerullo1994,
   author = {G. Cerullo and S. De Silvestri and V. Magni and L. Pallaro},
