@@ -68,6 +68,8 @@ def err(z, x, L1, L2, f, d, n, upper):
 
 xstart = 0.041
 xfinish = 0.057
+zstart = 0.113
+zfinish = 0.121
 
 #HMS region
 z0 = 0.114
@@ -101,3 +103,19 @@ x = 0.045
 z = 0.115
 print "delta1 = %f" %(delta1(x, z, L1, L2, f, d, n))
 
+#npts = 15
+#px = sp.linspace(xstart,xfinish,npts)
+#pz = sp.linspace(zstart,zfinish,npts)
+#PX,PZ = pl.meshgrid(px, pz)
+#Z = sp.zeros((npts, npts))
+#
+#for i in range(0,npts):
+#    for j in range(0,npts):
+#        Z[i,j] = delta1(PX[i, j], PZ[i, j], L1, L2, f, d, n)
+#        if Z[i, j] < 0:
+#            Z[i, j] = 0
+#
+##im2 = pl.imshow(Z, cmap=pl.cm.jet, alpha=.9, interpolation='bilinear')
+#
+#pl.contour(PX, PZ, Z)
+#pl.show()
