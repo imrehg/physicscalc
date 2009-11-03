@@ -1,7 +1,7 @@
 from __future__ import division
 import scipy as sp
-#import pylab as pl
 from scipy.optimize import leastsq
+import pylab as pl
 
 ## Input parameters
 # Arm lengths, in (m)
@@ -63,9 +63,16 @@ z0 = 0.114
 x = (z0 - d) / 2
 zup1, success = leastsq(err, z0, args=(x, L1, L2, f, d, n, True))
 zdo1, success = leastsq(err, z0, args=(x, L1, L2, f, d, n, False))
+pl.plot([xstart, xfinish],[zup1, zup1],'k--')
+pl.plot([xstart, xfinish],[zdo1, zdo1],'k--')
 
 #LMS region
 z0 = 0.120
 zup2, success = leastsq(err, z0, args=(x, L1, L2, f, d, n, True))
 zdo2, success = leastsq(err, z0, args=(x, L1, L2, f, d, n, False))
+pl.plot([xstart, xfinish],[zup2, zup2],'k--')
+pl.plot([xstart, xfinish],[zdo2, zdo2],'k--')
+pl.xlabel('x (m)')
+pl.ylabel('z (m)')
+pl.show()
 
