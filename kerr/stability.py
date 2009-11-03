@@ -31,12 +31,12 @@ def abcd0(x, z, L1, L2, f, d, n):
     ''' ABCD matrix of a single pass from M1 to M2
     Tangential plane.'''
     m = matprop(L1)
-    m = sp.dot(m, matlens(f))
-    m = sp.dot(m, matprop(x))
-    m = sp.dot(m, matprop(d / (n ** 3)))
-    m = sp.dot(m, matprop(z-x-d))
-    m = sp.dot(m, matlens(f))
-    m = sp.dot(m, matprop(L2))
+    m = sp.dot(matlens(f), m)
+    m = sp.dot(matprop(x), m)
+    m = sp.dot(matprop(d / (n ** 3)), m)
+    m = sp.dot(matprop(z-x-d), m)
+    m = sp.dot(matlens(f), m)
+    m = sp.dot(matprop(L2), m)
     return m
 
 
@@ -44,10 +44,10 @@ def abcd1(xx, f, L):
     ''' ABCD matrix of a return trip from the crystal face
     to pane mirror and back'''
     m = matprop(xx)
-    m = sp.dot(m, matlens(f))
-    m = sp.dot(m, matprop(2 * L))
-    m = sp.dot(m, matlens(f))
-    m = sp.dot(m, matprop(xx))
+    m = sp.dot(matlens(f), m)
+    m = sp.dot(matprop(2 * L), m)
+    m = sp.dot(matlens(f), m)
+    m = sp.dot(matprop(xx), m)
     return m
 
 
