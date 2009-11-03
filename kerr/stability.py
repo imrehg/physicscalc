@@ -40,6 +40,17 @@ def abcd0(x, z, L1, L2, f, d, n):
     return m
 
 
+def abcd1(xx, f, L):
+    ''' ABCD matrix of a return trip from the crystal face
+    to pane mirror and back'''
+    m = matprop(xx)
+    m = sp.dot(m, matlens(f))
+    m = sp.dot(m, matprop(2 * L))
+    m = sp.dot(m, matlens(f))
+    m = sp.dot(m, matprop(xx))
+    return m
+
+
 def stab(x, z, L1, L2, f, d, n):
     ''' S = A0 * D0 + B0 * D0, as in Cerullo 1994 Eq. 3
     Required -1 < S < 1 for stability '''
