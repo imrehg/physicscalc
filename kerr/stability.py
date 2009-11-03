@@ -85,5 +85,19 @@ pl.plot([xstart, xfinish],[zup2, zup2],'k--')
 pl.plot([xstart, xfinish],[zdo2, zdo2],'k--')
 pl.xlabel('x (m)')
 pl.ylabel('z (m)')
-pl.show()
+#pl.show()
+
+def delta1(x, z, L1, L2, f, d, n):
+    temp1 = abcd1(x, f, L1)
+    alpha1 = temp1[0,1] / (d / n **3) + temp1[0,0]
+    temp2 = abcd1(z - x - d, f, L2)
+    alpha2 = temp2[0,1] / (d / n **3) + temp2[0,0]
+    S = stab(x, z, L1, L2, f, d, n)
+    d1 = - (alpha1 + alpha2 * S) / \
+        (2 * (alpha1 + alpha2 + 2 * alpha1 * alpha2 * S))
+    return d1
+
+x = 0.045
+z = 0.115
+print "delta1 = %f" %(delta1(x, z, L1, L2, f, d, n))
 
