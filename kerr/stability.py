@@ -1,6 +1,7 @@
 from __future__ import division
 import scipy as sp
 #import pylab as pl
+from scipy.optimize import leastsq
 
 ## Input parameters
 # Arm lengths, in (m)
@@ -45,4 +46,26 @@ def stab(x, z, L1, L2, f, d, n):
     abcd = abcd0(x, z, L1, L2, f, d, n)
     return abcd[0,0] * abcd[1,1] + abcd[0,1] * abcd[1,0]
 
+
+# Find stability regions
+def err(z, x, L1, L2, f, d, n, upper):
+    if upper:
+        lim = 1
+    else:
+        lim = -1
+    return stab(x, z, L1, L2, f, d, n) - lim
+
+xstart = 0.041
+xfinish = 0.057
+
+#HMS region
+z0 = 0.114
+x = (z0 - d) / 2
+zup1, success = leastsq(err, z0, args=(x, L1, L2, f, d, n, True))
+zdo1, success = leastsq(err, z0, args=(x, L1, L2, f, d, n, False))
+
+#LMS region
+z0 = 0.120
+zup2, success = leastsq(err, z0, args=(x, L1, L2, f, d, n, True))
+zdo2, success = leastsq(err, z0, args=(x, L1, L2, f, d, n, False))
 
