@@ -49,8 +49,9 @@ def gettrans(params):
     modesn  = floor((wlevels/(2*pi) - fcentre) / freqrep)
     goodmode = abs(int(modesn[0]))
     ctot = 0j
-    for m in range(goodmode-11,goodmode+11):
-        for n in range(goodmode-11, goodmode+11):
+    nterms = 11
+    for m in range(goodmode-nterms,goodmode+nterms):
+        for n in range(goodmode-nterms, goodmode+nterms):
             params = (wtwo, fcentre, freqrep, decayrate, (-m, n))
             ctot += cgf(params)
     return ctot
