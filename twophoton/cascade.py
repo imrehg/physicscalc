@@ -58,8 +58,8 @@ def gettrans(params):
 def scan(freqrepscan):
     trans = []
     for f in freqrepscan:
-       params = (wtwo, fcentre, f, decayrate, (0, 0))
-       trans.append(abs(gettrans(params)))
+        params = (wtwo, fcentre, f, decayrate, (0, 0))
+        trans.append(abs(gettrans(params)))
     return trans
 
 # Do a scan of frequency
