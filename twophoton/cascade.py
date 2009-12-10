@@ -59,16 +59,48 @@ def scan(freqrepscan):
     trans = []
     for f in freqrepscan:
         params = (wtwo, fcentre, f, decayrate, (0, 0))
-        trans.append(abs(gettrans(params)))
+        trans.append(gettrans(params))
     return trans
 
 # Do a scan of frequency
 freqscan = linspace(90e6-1e3,90e6+1e3,401)
 start = time()
-res = scan(freqscan)
+res = array(scan(freqscan))
 elapsed = time() - start
 print "Elapsed time:", elapsed
-semilogy((freqscan-90e6)/1e3, res, '.-')
+
+
+detu = 2*pi*-100e6;
+wlevels = array([wlevels[0]-detu, wlevels[0]+detu])
+
+twopifcentre = 2 * pi * fcentre
+fourpifcentre = 2 * twopifcentre
+offs = wlevels[0] - twopifcentre
+offs2 = wtwo - fourpifcentre
+decay = decayrate[0]
+
+start = time()
+res = res + array(scan(freqscan))
+elapsed = time() - start
+print "Elapsed time:", elapsed
+
+detu2 = 2*pi*150e6;
+wlevels = array([wlevels[0]+detu-detu2, wlevels[0]-detu+detu2])
+
+twopifcentre = 2 * pi * fcentre
+fourpifcentre = 2 * twopifcentre
+offs = wlevels[0] - twopifcentre
+offs2 = wtwo - fourpifcentre
+decay = decayrate[0]
+
+start = time()
+res = res + array(scan(freqscan))
+elapsed = time() - start
+print "Elapsed time:", elapsed
+
+final = abs(res) 
+
+semilogy((freqscan-90e6)/1e3, final, '.-')
 xlabel('Repetition frequency - 90 Mhz (kHz)')
 ylabel('|Ctot|')
 show()
