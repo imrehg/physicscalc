@@ -8,7 +8,6 @@ x0 = 2
 
 D, l, x, s, b, k = symbols('Dlxsbk')
 D = s + x * l
-D = s + x * l
 
 cc = k * D ** 3 / l
 
