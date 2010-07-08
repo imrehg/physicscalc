@@ -10,7 +10,7 @@ l = 840e-9
 dosave = False
 
 def grate(thi, d, m, l):
-    stho = m*l/d - sin(thi)
+    stho = m*l/d + sin(thi)
     thi2 = thi[abs(stho) < 1]
     tho2 = arcsin(stho[abs(stho) < 1])
     return (thi2, tho2)
