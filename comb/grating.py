@@ -2,9 +2,9 @@ from __future__ import division
 from numpy import *
 from pylab import *
 
-gn = 1800
+gn = 600
 d = 1e-3/gn
-thi = linspace(0, pi/2, 200)
+thi = linspace(-pi/2, pi/2, 200)
 m = 1
 l = 840e-9
 dosave = False
@@ -47,14 +47,14 @@ if dosave:
 # plot(thi0/pi*180, -1*(tho0 - tho1)/pi*180)
 
 figure(3)
-ll = linspace(l-15e-9, l+15e-9)
-thi = 45.0/180*pi
-f = 0.1
+ll = linspace(l-20e-9, l+20e-9)
+thi =  15.0/180*pi
+f = 0.20
 x = tan(arcsin(m*ll/d - sin(thi))-arcsin(m*l/d - sin(thi)))*f
 plot(ll/1e-9, x/1e-3)
 xlabel('Wavelength component (nm)')
 ylabel('Distance from centre frequency position (mm)')
-title('Dispersion at 10cm from grating, groove number: %d' %gn)
+title('Dispersion at %dcm from grating, groove number: %d' %(f*100,gn))
 if dosave:
     savefig("diff3_%d.eps" %(gn))
 
