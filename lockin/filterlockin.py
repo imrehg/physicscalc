@@ -1,7 +1,8 @@
+from __future__ import division
 from numpy import *
 from scipy.integrate import odeint, simps
 from scipy.optimize import leastsq
-from pylab import plot, show, legend, figure, title, xlabel, ylabel
+from pylab import plot, show, legend, figure, title, xlabel, ylabel, savefig
 
 ## Input parameters
 # filter frequency, in modulation frequency units
@@ -14,6 +15,11 @@ Ts = 6
 # 0: original low-pass
 # 1: slow build up, quick decay, (similar to CPT)
 model = 1
+# Save figures
+savefigures = True
+savefigbase = "cpt02_"
+savefigext = "pdf"
+
 
 # Helper functions
 ph2deg = lambda ph: ph/pi*180
@@ -37,6 +43,7 @@ def filterresponse(t, fc):
     u = odeint(filterode,u0,t,args=(b,f)) #b is in tuple, needs comma
     return u[:,0]
 
+fign = 0
 dt = 0.025
 t = array(arange(0,20,dt))
 # linspace(0, 10, 400)
@@ -52,7 +59,12 @@ signal2 = bg
 figure()
 plot(t, signal1, label="Signal+bg")
 plot(t, signal2, label="Pure bg")
+xlabel("Time")
+ylabel("Measurement")
 legend(loc="best")
+if savefigures:
+    savefig("%s%d.%s"%(savefigbase,fign,savefigext))
+    fign +=1
 
 ## Lockin calculation
 def lockin(t, signal, ph, T):
@@ -69,17 +81,21 @@ def lockin(t, signal, ph, T):
 
 # Example lockin signal
 figure()
-lt, ls = lockin(t, signal1, 0, 3)
+phex = 0/180*pi
+lt, ls = lockin(t, signal1, phex, Ts)
 plot(lt, ls, label="Signal+bg")
-lt, ls = lockin(t, signal2, 0, 3)
+lt, ls = lockin(t, signal2, phex, Ts)
 plot(lt, ls, label="Pure bg")
 xlabel("Time")
-ylabel("Lock-in signal")
+ylabel("Lock-in signals")
 legend(loc="best")
+if savefigures:
+    savefig("%s%d.%s"%(savefigbase,fign,savefigext))
+    fign +=1
 
 
 ## Lockin phase dependence
-phl = linspace(0, pi, 90)
+phl = linspace(0, pi, 181)
 ms = []
 mb = []
 for n,ph in enumerate(phl):
@@ -101,11 +117,23 @@ plot(ph2deg(phl), mb, label="Pure bg")
 xlabel("Lock-in phase (deg)")
 ylabel("Lockin signal")
 legend(loc="best")
+if savefigures:
+    savefig("%s%d.%s"%(savefigbase,fign,savefigext))
+    fign +=1
 
+ratio = abs(ms/mb)
+pmax = argmax(ratio)
+pmin = argmin(ratio)
+ptrick = ph2deg((phl[pmax] + phl[pmin])/2)
 figure()
-plot(ph2deg(phl), abs(ms/mb),'x-')
+plot(ph2deg(phl), abs(ms/mb),'.')
+plot([ptrick, ptrick], [min(ratio), max(ratio)])
 xlabel("Lock-in phase (deg)")
-ylabel("(S+BG) / BG")
+ylabel("(S+B) / B")
+title("Resonance at %.1f deg" %(ptrick))
+if savefigures:
+    savefig("%s%d.%s"%(savefigbase,fign,savefigext))
+    fign +=1
 
 
 show()
