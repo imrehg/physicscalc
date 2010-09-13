@@ -143,12 +143,54 @@ def multipledouble(p, x):
     res += p[-1]
     return res
 
+def multipledouble_plusg(p, x):
+    n = int((len(p)-4)/3)
+    xlim = x[-1] - x[0]
+    xc = linspace(-xlim, xlim, xlim*3+1)
+    np = xlim*3+1
+    res = zeros(len(x))
+    s = p[-3]
+    A = p[-4]
+    for i in xrange(n):
+        x0N = p[i*3]
+        iN = p[i*3+1]
+        G = p[i*3+2]
+        u = p[-2]
+        params = (G, u)
+        t = double(params, xlim, np)
+        o2 = interp1d(xc, t)
+        res += o2(x-x0N)*iN
+        res += gauss([x0N, s, iN*A], x)
+    res += p[-1]
+    return res
+
+# def multipledouble_gb(p, x):
+#     ''' Transit broadedning with gaussian background'''
+#     n = int((len(p)-5)/2)
+#     xlim = x[-1] - x[0]
+#     xc = linspace(-xlim, xlim, xlim*3+1)
+#     np = xlim*3+1
+#     res = zeros(len(x))
+#     for i in xrange(n):
+#         x0N = p[i*2]
+#         iN = p[i*2+1]
+#         G = p[-5]
+#         u = p[-4]
+#         params = (G, u)
+#         t = double(params, xlim, np)
+#         o2 = interp1d(xc, t)
+#         res += o2(x-x0N)*iN
+#     res += gauss([p[-3], p[-2], p[-1]], x)
+#     return res
+
+
 def multipledouble_freeg(p, x):
     ''' Transit broadening with G as free parameter '''
     n = int((len(p)-2)/3)
     xlim = x[-1] - x[0]
-    xc = linspace(-xlim, xlim, xlim*3+1)
-    np = xlim*3+1
+    # xc = linspace(-xlim, xlim, xlim*3+1)
+    xc = linspace(-xlim, xlim, 501)
+    np = len(xc)
     res = zeros(len(x))
     for i in xrange(n):
         x0N = p[i*3]
@@ -187,8 +229,11 @@ def multipletripple_freeg(p, x):
     ''' Tripple convolution with flexible Lorentzian width '''
     n = int((len(p)-3)/3)
     xlim = x[-1] - x[0]
-    xc = linspace(-xlim, xlim, xlim*3+1)
-    np = xlim*3+1
+    xlim = xlim*2
+    xc = linspace(-xlim, xlim, 901)
+    np = len(xc)
+    # xc = linspace(-xlim, xlim, xlim*3+1)
+    # np = xlim*3+1
     res = zeros(len(x))
     for i in xrange(n):
         x0N = p[i*3]
@@ -198,7 +243,7 @@ def multipletripple_freeg(p, x):
         u = p[-2]
         params = (G, u, s)
         t = tripple(params, xlim, np)
-        o2 = interp1d(xc, t)
+        o2 = interp1d(xc, t, 'linear')
         res += o2(x-x0N)*iN
     res += p[-1]
     return res
@@ -241,5 +286,6 @@ def completefit(f, x, y, p0, filename, name, toplot=False, tosave=False):
         pl.ylabel('Residuals')
         if tosave:
             pl.savefig("%s_%s-residuals.png"%(filename, name))
+            pl.savefig("%s_%s-residuals.eps"%(filename, name))
     return yh, out
 
