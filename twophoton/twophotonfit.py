@@ -230,7 +230,7 @@ def multipletripple_freeg(p, x):
     n = int((len(p)-3)/3)
     xlim = x[-1] - x[0]
     xlim = xlim*2
-    xc = linspace(-xlim, xlim, 901)
+    xc = linspace(-xlim, xlim, 1201)
     np = len(xc)
     # xc = linspace(-xlim, xlim, xlim*3+1)
     # np = xlim*3+1

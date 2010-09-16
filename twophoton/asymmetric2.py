@@ -5,12 +5,14 @@ from scipy.odr import *
 import cProfile
 import twophotonfit
 from time import time
+from scipy.interpolate import UnivariateSpline
 
 n = 1001
 s = 0.5
 p = [0, 1, 1000]
 lorentz = lambda p, x : p[2]*p[1]/((x - p[0])**2 + p[1]**2)+p[3]
-
+gauss = lambda p, x: p[2]/p[1]*exp(-(x-p[0])**2/(2*p[1]**2))+p[3
+]
 def gendata(f, p, x, s):
     out = array([random.randn()*v*s+v for v in f(p, x)])
     # return f(p, x)+e
@@ -32,12 +34,6 @@ def twosides(f, x, y, p0):
     fitr = dofit(f, xr, yr, fit1.beta)
     # if sym > 0.5:
     #     print w, wl, wr
-    # pl.plot(x, f(fit1.beta, x))
-    # pl.plot(xl, yl, 'x')
-    # pl.plot(xl, f(fitl.beta, xl))
-    # pl.plot(xr, yr, '.')
-    # pl.plot(xr, f(fitr.beta, xr))
-    # pl.show()
     xc = linspace(x[0], x[-1], 10001)
     def getwidth(x, fit):
         yc = abs(f(fit.beta, x)-fit.beta[1]/2)
@@ -47,6 +43,13 @@ def twosides(f, x, y, p0):
     wl = getwidth(xc, fitl)
     wr = getwidth(xc, fitr)
     sym = abs(wl-wr)/w
+    # print w, wl, wr
+    # pl.plot(x, f(fit1.beta, x))
+    # pl.plot(xl, yl, 'x')
+    # pl.plot(xl, f(fitl.beta, xl))
+    # pl.plot(xr, yr, '.')
+    # pl.plot(xr, f(fitr.beta, xr))
+    # pl.show()
     return sym
 
 
@@ -70,22 +73,44 @@ def doanalyse(filename):
     x = (data[:,0]-1.7e8)/1e6
     y = -data[:,1]
 
+    xc = linspace(x[0], x[-1], 10001)
     ###############  First fit
-    # p = [-0.36400664,  0.12765653,  0.04023463,  0.00770604]
+    # p = [-0.36400664,  1.2765653,  0.4023463,  0.0770604]
     # fitted = dofit(lorentz, x, y, p)
-    # fitted.pprint()
+    # # fitted.pprint()
     # pf = fitted.beta
-    # print twosides(lorentz, x, y, p)
+    # # print twosides(lorentz, x, y, p)
+    # pl.figure()
+    # pl.plot(x, y, '.')
+    # pl.plot(xc, lorentz(pf, xc), '-')
+    # pl.title('lorentzian')
+    # pl.figure()
+    # pl.plot(x, y-lorentz(pf, x), '.')
+    # pl.title('lorentzian')
+
+    # p = [-0.36400664,  1.2765653,  0.4023463,  0.0770604]
+    # fitted = dofit(gauss, x, y, p)
+    # # fitted.pprint()
+    # pf = fitted.beta
+    # # print twosides(lorentz, x, y, p)
+    # pl.figure()
+    # pl.plot(x, y, '.')
+    # pl.plot(xc, gauss(pf, xc), '-')
+    # pl.title('gauss')
+    # pl.figure()
+    # pl.plot(x, y-gauss(pf, x), '.')
+    # pl.title('gauss')
+
 
     # p = [-0.36400664,  0.22765653,  0.04023463,  0.04, 0.00770604]
     # fit = twophotonfit.dofit(twophotonfit.multipledouble_freeg, x, y, p)
     # fit.pprint()
     # yy = twophotonfit.multipledouble_freeg(fit.beta, x)
 
-    # p = [-3.6400664,  0.22765653,  0.4023463,  0.1, 0.4, 0.00770604]
-    # fit = twophotonfit.dofit(twophotonfit.multipletripple_freeg, x, y, p)
-    # fit.pprint()
-    # yy2 = twophotonfit.multipletripple_freeg(fit.beta, x)
+    p = [-3.6400664,  0.22765653,  0.4023463,  0.1, 0.4, 0.00770604]
+    fit = twophotonfit.dofit(twophotonfit.multipletripple_freeg, x, y, p)
+    # fit.pprint() 
+   # yy2 = twophotonfit.multipletripple_freeg(fit.beta, x)
     # pl.plot(x, y, '.')
 
     # for i in range(len(fit.beta)):
@@ -97,33 +122,80 @@ def doanalyse(filename):
 
     #######################
 
-    pf = [-3.64759824,  0.29662501,  0.60663077, -0.86707082,  0.27488604,  0.01065825]
+    # pf = [-3.64759824,  0.29662501,  0.60663077, -0.86707082,  0.27488604,  0.01065825]
+    pf = fit.beta
+    print pf
     f = twophotonfit.multipletripple_freeg
     fity = f(pf, x)
+    u = len(x) - len(pf) - 1
+
     ee = y - fity
     sddd = std(ee)
-    n = 11
-    a = linspace(min(y), max(y), n+1)
+    n = 61
+    a = linspace(min(fity), max(fity), n+1)
     ey = array([])
     em = array([])
-    for i in xrange(n):
-         eey = ee[(a[i] <= y) & (y <= a[i+1])]
-         ey = append(ey, std(eey))
-         em = append(em, mean(eey))
-    h = a[1]-a[0
-    # pl.plot(y, ee, '-')
+    # for i in xrange(n):
+    #      eey = ee[(a[i] <= fity) & (fity <= a[i+1])]
+    #      print len(eey)
+    #      ey = append(ey, std(eey))
+    #      em = append(em, mean(eey))
+    # h = a[1]-a[0]
+    # pl.plot(fity, abs(ee), '.')
     # pl.plot(a[:-1]+h/2, ey, '-')
-    # pl.plot(a[:-1]+h/2, em, '-')
-    # # aa = a[:-1]+h/2
-    aa = a[:-1]
-    z = polyfit(aa, ey, 4)
-    pz = poly1d(z)
+    # # pl.plot(a[:-1]+h/2, em, '-')
+    # # # aa = a[:-1]+h/2
+    # aa = a[:-1]+h/2
+    # z = polyfit(aa, ey, 1)
+    # pz = poly1d(z)
     # pl.plot(aa, pz(aa))
-    # # pl.plot(x, y, '.')
-    # # pl.plot(x, fity)
+    # print ey
+    # # # pl.plot(x, y, '.')
+    # # # pl.plot(x, fity)
+    # # pl.plot(y, abs(ee), '.')
+    # pl.show()
+
+
+    ordery = zip(fity, ee)
+    sy, se = zip(*(sorted(ordery)))
+    sy = array(sy[-7000:])
+    se = array(se[-7000:])
+    ey = array([])
+    xy = array([])
+    nn = 70
+    for i in range(int(len(sy)/nn)):
+        ey = append(ey, std(se[(i*nn):((i+1)*nn)]))
+        xy = append(xy, mean(sy[(i*nn):((i+1)*nn)]))
+    pl.plot(sy, abs(se), '.')
+    pl.plot(xy, ey)
+    iny = linspace(sy[0], sy[-1], 1001)
+    extrap = UnivariateSpline( xy, ey, k=5 )
+    pl.plot(iny, extrap(iny), '-')
+    pl.show()
+    # chired = sum((y - fity)**2/pz(fity)**2)/u
+    # print chired
+
+    # pl.figure()
+    # pl.plot(x, y, '.')
+    # pl.plot(xc, f(pf, xc), '-', linewidth=2)
+    # pl.xlim([xc[0], xc[-1]])
+    # pl.xlabel('detuning (MHz)')
+    # pl.ylabel('Signal (a.u.)')
+    # pl.savefig('fit.png')
+
+    # pl.figure()
+    # pl.plot(x, y-fity, '.')
+    # pl.xlim([xc[0], xc[-1]])
+    # pl.xlabel('detuning (MHz)')
+    # pl.ylabel('residuals')
+    # pl.savefig('residuals.png')
+
+    
+
+    # pl.show()
 
     # ##### Scan systematics
-    # pl.plot(y, ee, '-')
+    # pl.plot(fity, ee, '-')
     # pl.show()
 
     ### Error variance stuff
@@ -145,7 +217,7 @@ def doanalyse(filename):
 
     # ##########################3
     # ww = twosides(f, x, y, pf)
-
+    # print ww
 
     ### Artificial skew
     # yy = gendata2(f, pf, x, pz)
