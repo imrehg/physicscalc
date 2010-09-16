@@ -53,6 +53,25 @@ def twosides(f, x, y, p0):
     return sym
 
 
+def fitchi(f, x, y, p0):
+    result = dofit(f, x, y, p0)
+    pf = result.beta
+    fity = f(pf, x)
+    ee = y - fity
+    ordery = zip(fity, ee)
+    sy, se = zip(*(sorted(ordery)))
+    sy = array(sy[-7000:])
+    se = array(se[-7000:])
+    ey = array([])
+    xy = array([])
+    nn = 70
+    for i in range(int(len(sy)/nn)):
+        ey = append(ey, std(se[(i*nn):((i+1)*nn)]))
+        xy = append(xy, mean(sy[(i*nn):((i+1)*nn)]))
+    extrap = UnivariateSpline( xy, ey, k=5 )
+    v = len(y)-len(pf)-1
+    chi2 = sum(((y-fity)/extrap(fity))**2)/v
+    return pf, chi2
 
 def dofit(f, x, y, p0):
     data = Data(x, y)
@@ -75,7 +94,12 @@ def doanalyse(filename):
 
     xc = linspace(x[0], x[-1], 10001)
     ###############  First fit
-    # p = [-0.36400664,  1.2765653,  0.4023463,  0.0770604]
+    pl.plot(x, y, '.')
+    p = [-0.36400664,  1.2765653,  0.4023463,  0.0770604]
+    pfl, chil = fitchi(lorentz, x, y, p)
+    pl.plot(x, lorentz(pfl, x), label='Lorentz')
+    print "Lorentz reduced chi-squared: ", chil
+    # pl.show()
     # fitted = dofit(lorentz, x, y, p)
     # # fitted.pprint()
     # pf = fitted.beta
@@ -108,7 +132,11 @@ def doanalyse(filename):
     # yy = twophotonfit.multipledouble_freeg(fit.beta, x)
 
     p = [-3.6400664,  0.22765653,  0.4023463,  0.1, 0.4, 0.00770604]
-    fit = twophotonfit.dofit(twophotonfit.multipletripple_freeg, x, y, p)
+    # fit = twophotonfit.dofit(twophotonfit.multipletripple_freeg, x, y, p)
+    f = twophotonfit.multipletripple_freeg
+    pftw, chitw = fitchi(f, x, y, p)
+    print "Tripple reduced chi-squared: ", chitw
+
     # fit.pprint() 
    # yy2 = twophotonfit.multipletripple_freeg(fit.beta, x)
     # pl.plot(x, y, '.')
@@ -122,56 +150,62 @@ def doanalyse(filename):
 
     #######################
 
-    # pf = [-3.64759824,  0.29662501,  0.60663077, -0.86707082,  0.27488604,  0.01065825]
-    pf = fit.beta
-    print pf
-    f = twophotonfit.multipletripple_freeg
-    fity = f(pf, x)
-    u = len(x) - len(pf) - 1
+    # # pf = [-3.64759824,  0.29662501,  0.60663077, -0.86707082,  0.27488604,  0.01065825]
+    # pf = fit.beta
+    # print pf
+    # f = twophotonfit.multipletripple_freeg
+    # fity = f(pf, x)
+    # u = len(x) - len(pf) - 1
 
-    ee = y - fity
-    sddd = std(ee)
-    n = 61
-    a = linspace(min(fity), max(fity), n+1)
-    ey = array([])
-    em = array([])
-    # for i in xrange(n):
-    #      eey = ee[(a[i] <= fity) & (fity <= a[i+1])]
-    #      print len(eey)
-    #      ey = append(ey, std(eey))
-    #      em = append(em, mean(eey))
-    # h = a[1]-a[0]
-    # pl.plot(fity, abs(ee), '.')
-    # pl.plot(a[:-1]+h/2, ey, '-')
-    # # pl.plot(a[:-1]+h/2, em, '-')
-    # # # aa = a[:-1]+h/2
-    # aa = a[:-1]+h/2
-    # z = polyfit(aa, ey, 1)
-    # pz = poly1d(z)
-    # pl.plot(aa, pz(aa))
-    # print ey
-    # # # pl.plot(x, y, '.')
-    # # # pl.plot(x, fity)
-    # # pl.plot(y, abs(ee), '.')
+    # ee = y - fity
+    # sddd = std(ee)
+    # n = 61
+    # a = linspace(min(fity), max(fity), n+1)
+    # ey = array([])
+    # em = array([])
+    # # for i in xrange(n):
+    # #      eey = ee[(a[i] <= fity) & (fity <= a[i+1])]
+    # #      print len(eey)
+    # #      ey = append(ey, std(eey))
+    # #      em = append(em, mean(eey))
+    # # h = a[1]-a[0]
+    # # pl.plot(fity, abs(ee), '.')
+    # # pl.plot(a[:-1]+h/2, ey, '-')
+    # # # pl.plot(a[:-1]+h/2, em, '-')
+    # # # # aa = a[:-1]+h/2
+    # # aa = a[:-1]+h/2
+    # # z = polyfit(aa, ey, 1)
+    # # pz = poly1d(z)
+    # # pl.plot(aa, pz(aa))
+    # # print ey
+    # # # # pl.plot(x, y, '.')
+    # # # # pl.plot(x, fity)
+    # # # pl.plot(y, abs(ee), '.')
+    # # pl.show()
+
+
+    # ordery = zip(fity, ee)
+    # sy, se = zip(*(sorted(ordery)))
+    # sy = array(sy[-7000:])
+    # se = array(se[-7000:])
+    # ey = array([])
+    # xy = array([])
+    # nn = 70
+    # for i in range(int(len(sy)/nn)):
+    #     ey = append(ey, std(se[(i*nn):((i+1)*nn)]))
+    #     xy = append(xy, mean(sy[(i*nn):((i+1)*nn)]))
+    # pl.plot(sy, abs(se), '.')
+    # pl.plot(xy, ey)
+    # iny = linspace(sy[0], sy[-1], 1001)
+    # extrap = UnivariateSpline( xy, ey, k=5 )
+
+    # v = len(y)-len(pf)-1
+    # chi2 = sum(((y-fity)/extrap(fity))**2)/v
+    # print chi2
+
+
+    # pl.plot(iny, extrap(iny), '-')
     # pl.show()
-
-
-    ordery = zip(fity, ee)
-    sy, se = zip(*(sorted(ordery)))
-    sy = array(sy[-7000:])
-    se = array(se[-7000:])
-    ey = array([])
-    xy = array([])
-    nn = 70
-    for i in range(int(len(sy)/nn)):
-        ey = append(ey, std(se[(i*nn):((i+1)*nn)]))
-        xy = append(xy, mean(sy[(i*nn):((i+1)*nn)]))
-    pl.plot(sy, abs(se), '.')
-    pl.plot(xy, ey)
-    iny = linspace(sy[0], sy[-1], 1001)
-    extrap = UnivariateSpline( xy, ey, k=5 )
-    pl.plot(iny, extrap(iny), '-')
-    pl.show()
     # chired = sum((y - fity)**2/pz(fity)**2)/u
     # print chired
 
