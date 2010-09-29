@@ -73,7 +73,7 @@ def filterexp(tdom, dt, fp):
     fdomfilt = fdom*filt
     return F, fdom, fdomfilt, filt
 
-def testsin(savefigs = False):
+def testsin(savefigs = False, extension = 'png'):
     t = linspace(-100, 100, 20000)
     a = 1
     w = 0.5
@@ -111,11 +111,11 @@ def testsin(savefigs = False):
 
     if savefigs:
         pl.figure(1)
-        pl.savefig('fpsin_freqdomain.png')
+        pl.savefig('fpsin_timedomain.%s' %extension)
         pl.figure(2)
-        pl.savefig('fpsin_timedomain.png')
+        pl.savefig('fpsin_freqdomain.%s' %extension)
 
-def testexp(savefigs = False):
+def testexp(savefigs = False, extension = 'png'):
     t = linspace(-100, 100, 20000)
     a = 1
     w = 0.5
@@ -153,13 +153,14 @@ def testexp(savefigs = False):
 
     if savefigs:
         pl.figure(11)
-        pl.savefig('fpexp_freqdomain.png')
+        pl.savefig('fpexp_timedomain.%s' %extension)
         pl.figure(12)
-        pl.savefig('fpexp_timedomain.png')
+        pl.savefig('fpexp_freqdomain.%s' %extension)
 
 
 if __name__ == '__main__':
-    savefigs = False
-    testsin(savefigs)
-    testexp(savefigs)
+    savefigs = True
+    ext = 'eps'
+    testsin(savefigs, ext)
+    testexp(savefigs, ext)
     pl.show()
