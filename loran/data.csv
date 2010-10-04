@@ -1,0 +1,19 @@
+Chain,GRI,Station,Location name,Location coordinate,Distance,Power
+China North Sea,74300,M,Rongcheng China,37.064379 122.323876,,1200
+China North Sea,74300,X,Xuancheng China,31.068871 118.886007,,1200
+China North Sea,74300,Y,Helong China,42.719878 129.107559,,1200
+East Asian,99300,M,Pohang Korea,36.184847 129.340956,,150
+East Asian,99300,W,Kwang-Ju Korea,35.039999 126.540915,,50
+East Asian,99300,X,Gesashi Okinawa,26.606955 128.149144,,1000
+East Asian,99300,Y,Niijima Japan,34.403318 139.272076,,1000
+Northwest Pacific,89300,M,Niijima Japan,34.403318 139.272076,,1000
+Northwest Pacific,89300,W,Gesashi Okinawa,26.606955 128.149144,,1000
+Northwest Pacific,89300,X,Minamitorishima Japan,24.285558 153.981605,,1000
+Northwest Pacific,89300,Y,Tokatibutto Japan,42.743671 143.719377,,600
+Northwest Pacific,89300,Z,Pohang Korea,36.184847 129.340956,,150
+China East Sea,83900,M,Xuancheng China,31.068871 118.886007,,1200
+China East Sea,83900,X,Raoping China,23.723873 116.895785,,1200
+China East Sea,83900,Y,Rongcheng China,37.064379 122.323876,,1200
+China South Sea,67800,M,Hexian China,23.967735 111.719527,,1200
+China South Sea,67800,X,Raoping China,23.723873 116.895785,,1200
+China South Sea,67800,Y,Chongzuo China,22.543181 107.222685,,1200
