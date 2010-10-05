@@ -83,7 +83,7 @@ def chopfit(t, v, doplot=False, saveplot=False, filename="chopfit", fileext="png
     pout = out.beta
     period = out.beta[3]/1e6
     period_sd = out.sd_beta[3]/1e6
-    beamsize = "w0 = %.2f (\pm %.2f) \mu s" %(out.beta[0], out.sd_beta[0])
+    beamsize = "w = %.2f (\pm %.2f) \mu s" %(out.beta[0], out.sd_beta[0])
     repetition = "\mathrm{rep} = %.2f (\pm %.2f) \mathrm{Hz} / %.0f \mu s" %(1/period, (1/period**2 *period_sd), period*1e6)
     print "beam size: %s\nrepetition rate: %s" %(beamsize, repetition)
     if doplot:
