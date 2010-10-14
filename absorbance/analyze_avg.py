@@ -18,7 +18,7 @@ if len(sys.argv) >= 2:
     ser = int(sys.argv[1])
     print "Series: %04d" %ser
 else:
-    sys.exit(1)
+    ser = int(raw_input("Series number:"))
 pics = []
 i = 0
 while True:
