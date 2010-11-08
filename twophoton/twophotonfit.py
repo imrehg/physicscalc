@@ -277,13 +277,16 @@ def completefit(f, x, y, p0, filename, name, toplot=False, tosave=False):
         pl.title('%s'%name)
         pl.xlabel('x')
         pl.ylabel('Data & fit')
+        pl.xlim([min(x), max(x)])
         if tosave:
             pl.savefig("%s_%s.png"%(filename, name))
+            pl.savefig("%s_%s.eps"%(filename, name))
         pl.figure()
         pl.plot(x, y-yh, '.')
         pl.title('%s'%name)
         pl.xlabel('x')
         pl.ylabel('Residuals')
+        pl.xlim([min(x), max(x)])
         if tosave:
             pl.savefig("%s_%s-residuals.png"%(filename, name))
             pl.savefig("%s_%s-residuals.eps"%(filename, name))
