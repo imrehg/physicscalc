@@ -270,6 +270,8 @@ def completefit(f, x, y, p0, filename, name, toplot=False, tosave=False):
     if tosave:
         fitpars = zip(out.beta, out.sd_beta)
         savetxt("%s_%s.txt"%(filename, name), fitpars)
+        fitdata = zip(x, y, yh)
+        savetxt("%s_%s.predict.txt"%(filename, name), fitdata)
     if toplot: 
         pl.figure()
         pl.plot(x, y, '.')
