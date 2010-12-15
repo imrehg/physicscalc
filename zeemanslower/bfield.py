@@ -3,7 +3,7 @@
 Simulation and data fitting to design a Zeeman slower.
 Follows in the footsteps of Bell et.al., Rev. Sci. Inst 81 (2010) 013105
 """
-
+from __future__ import division
 import numpy as np
 import pylab as pl
 import scipy.integrate as integ
@@ -18,12 +18,6 @@ def bideal(z, params):
     nu = 1
     a = 1
     return Ba - hbar*k/mu*np.sqrt(v0**2 - 2 * nu * a * z)
-
-# z = np.linspace(0, 1, 201)
-# params = {'v0': 1}
-# pl.plot(z, bideal(z, params))
-# pl.show()
-
 
 def pos(p, params):
     """ parameteric coil """
@@ -48,28 +42,31 @@ def deriv(p, params):
     dz = c[8] + p*0
     return zip(dx, dy, dz)
 
-c = [1e-4, 3, 8.7, -0.3, 1e-4, 1.6e-3, 1e-4][::-1] + [-0.1, 0.58]
-R = 1
-params = {'R': R, 'c': c}
-prange = np.linspace(0, 2*np.pi, 3001)
-helix = pos(prange, params)
-x, y, z = zip(*helix)
-dhelix = deriv(prange, params)
-dx, dy, dz = zip(*dhelix)
+def bzfield(p, params, z):
+    cord = params['cord']
+    cp = params['cp']
+    cn = params['cn']
+    cpnew = [cp[i]*(cord-i) for i in range(0,cord)]
+    cnnew = [cn[i]*(cord-i) for i in range(0,cord)]
+    R = params['R']
+    upperp = np.polyval(cpnew, p)
+    lowerp = (R**2 + (np.polyval(cp[cord+1:], p)-z)**2)**(3/2)
+    uppern = np.polyval(cnnew, p)
+    lowern = (R**2 + (np.polyval(cn[cord+1:], p)-z)**2)**(3/2)
+    return upperp/lowerp + uppern/lowern
 
-# fig = pl.figure()
-# ax = Axes3D(fig)
-# ax.plot(x, y, z, label='Helix')
 
-dx1 = np.array(np.diff(x))
-dy1 = np.array(np.diff(y))
+## Coil parameters
+cp = [0, 1.6e-3, 0, -0.3, 8.7, 3, 0, -0.1, 0.58]
+cn = [-0.0012, 0.0035, 0.02, -0.23, -1.257, -2, 3.14, 0.043, 0.62]
+R = 0.04
+cord = 6
 
-dp1 = np.array(np.diff(prange))
-pl.subplot(211)
-pl.plot(prange[0:-1], dx1/dp1)
-pl.plot(prange, dx)
-pl.subplot(212)
-pl.plot(prange[0:-1], dy1/dp1)
-pl.plot(prange, dy)
-
+params = {'R': R, 'cp': cp, 'cn': cn, 'cord': cord}
+zl = np.linspace(-0.2, 1.1, 201)
+res =  [integ.quad(bzfield, 0, 2*np.pi, args=(params, zz))[0] for zz in zl]
+pl.plot(zl, res)
+pl.xlim([zl[0], zl[-1]])
+pl.xlabel('Length')
+pl.ylabel('"Field"')
 pl.show()
