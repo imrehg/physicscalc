@@ -24,44 +24,49 @@ def gbeam(z, lam, w0):
     zR = np.pi * w0**2 / lam
     R = z * (1 + (zR / z)**2)
     w = w0 * np.sqrt(1 + (z / zR)**2)
-    q = 1 / ((1 / R) - (1j * l / (np.pi * w**2)))
+    q = 1 / ((1 / R) - (1j * lam / (np.pi * w**2)))
     return (w, R, q)
 
-def getwidths(L, MR, q, n):
+def getwidths(L, MR, q, lam, n):
     mirror = mirrors(L, MR)
     res = cavity(q, mirror, n)
-    widths = np.array([np.sqrt(-1/(np.imag(1/r))*l/np.pi) for r in res])
+    widths = np.array([np.sqrt(-1/(np.imag(1/r))*lam/np.pi) for r in res])
     return widths
 
-l = 852e-9
-w0 = 0.5e-3
-n = 20
-w, R, q = gbeam(0, l, w0)
 
-print q
-pl.figure(figsize=(11.69, 8.27), dpi=100)
+def basiccompare():
+    l = 852e-9
+    w0 = 0.5e-3
+    n = 20
+    w, R, q = gbeam(0, l, w0)
 
-L = 1
-MR = L
-name = "R = L = %g (confocal)" %(L)
-widths = getwidths(L, MR, q, n)
-pl.plot(range(1,n+1), widths/w0, 'bx-', label=name)
+    print q
+    pl.figure(figsize=(11.69, 8.27), dpi=100)
 
-L = 0.8
-MR = 1.0
-name = "R = %g,  L = %g" %(MR, L)
-widths = getwidths(L, MR, q, n)
-pl.plot(range(1,n+1), widths/w0, 'ro-', label=name)
+    L = 1
+    MR = L
+    name = "R = L = %g (confocal)" %(L)
+    widths = getwidths(L, MR, q, l, n)
+    pl.plot(range(1,n+1), widths/w0, 'bx-', label=name)
 
-L = 1.0
-MR = 0.8
-name = "R = %g,  L = %g" %(MR, L)
-widths = getwidths(L, MR, q, n)
-pl.plot(range(1,n+1), widths/w0, 'gd-', label=name)
+    L = 0.8
+    MR = 1.0
+    name = "R = %g,  L = %g" %(MR, L)
+    widths = getwidths(L, MR, q, l, n)
+    pl.plot(range(1,n+1), widths/w0, 'ro-', label=name)
 
-pl.xlabel('Round trip number')
-pl.ylabel('Beam waist at output (compared to input)')
-pl.xlim([0, n])
+    L = 1.0
+    MR = 0.8
+    name = "R = %g,  L = %g" %(MR, L)
+    widths = getwidths(L, MR, q, l, n)
+    pl.plot(range(1,n+1), widths/w0, 'gd-', label=name)
 
-pl.legend(loc='best')
-pl.show()
+    pl.xlabel('Round trip number')
+    pl.ylabel('Beam waist at output (compared to input)')
+    pl.xlim([0, n])
+
+    pl.legend(loc='best')
+    pl.show()
+
+if __name__ == "__main__":
+    basiccompare()
