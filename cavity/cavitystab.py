@@ -7,7 +7,7 @@ def mirrors(L, R):
     prop = np.mat([[1, L],[0, 1]])
     mirr = np.mat([[1, 0],[-2/R, 1]])
 
-    total = mirr * prop * mirr * prop
+    total = prop * mirr * prop * mirr
     return total
 
 def cavity(q, mirror, n):
@@ -41,29 +41,23 @@ w, R, q = gbeam(0, l, w0)
 print q
 pl.figure(figsize=(11.69, 8.27), dpi=100)
 
-L = 0.5
-MR = 0.5
-name = "R = L = 0.5 (confocal)"
+L = 1
+MR = L
+name = "R = L = %g (confocal)" %(L)
 widths = getwidths(L, MR, q, n)
 pl.plot(range(1,n+1), widths/w0, 'bx-', label=name)
 
-L = 0.5
-MR = 0.8
-name = "R = 0.8 ,  L = 0.5"
+L = 0.8
+MR = 1.0
+name = "R = %g,  L = %g" %(MR, L)
 widths = getwidths(L, MR, q, n)
 pl.plot(range(1,n+1), widths/w0, 'ro-', label=name)
 
-L = 0.8
-MR = 0.5
-name = "R = 0.5 ,  L = 0.8"
+L = 1.0
+MR = 0.8
+name = "R = %g,  L = %g" %(MR, L)
 widths = getwidths(L, MR, q, n)
 pl.plot(range(1,n+1), widths/w0, 'gd-', label=name)
-
-# L = 0.9
-# MR = 0.5
-# name = "R = 0.5 ,  L = 0.8"
-# widths = getwidths(L, MR, q, n)
-# pl.plot(range(1,n+1), widths/w0, 'ks-', label=name)
 
 pl.xlabel('Round trip number')
 pl.ylabel('Beam waist at output (compared to input)')
