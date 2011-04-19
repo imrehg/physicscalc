@@ -3,6 +3,13 @@ import pylab as pl
 import numpy as np
 import ourgui
 
+def getdata(data, field):
+    try:
+        this = data[field]
+    except:
+        this = None
+    return this
+
 def runanalysis():
     filename = ourgui.openFile(type='npz')
 
@@ -11,8 +18,26 @@ def runanalysis():
     Z = data['Z']
     BY = data['BY']
     BZ = data['BZ']
+    coilpos = getdata(data, 'coilpos')
+    coilwidth = getdata(data, 'coilwidth')
+    nturns = getdata(data, 'nturns')
+    coilsize = getdata(data, 'coilsize')
 
-    pl.figure(figsize=(11.69, 8.27), dpi=100)
+    infopiece = []
+    if coilpos:
+        infopiece += ['Cpos: %g"' % coilpos]
+    if coilwidth:
+        infopiece += ['Cwidth: %g"' % coilwidth]
+    if coilsize:
+        infopiece += ['Csize: %g"' % coilsize]
+    if nturns:
+        infopiece += ["Turns: %d" % nturns]
+    infotitle = ", ".join(infopiece)
+
+
+    fig = pl.figure(figsize=(11.69, 8.27), dpi=100)
+    fig.text(.4, .95, infotitle)
+
     pl.subplot(2,2,1)
     pl.quiver(Z, Y, BZ, BY)
     pl.xlabel('Z')
