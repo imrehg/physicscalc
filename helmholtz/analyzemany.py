@@ -21,6 +21,7 @@ def runanalysis(filename):
     coilwidth = getdata(data, 'coilwidth')
     nturns = getdata(data, 'nturns')
     coilsize = getdata(data, 'coilsize')
+    vary = str(getdata(data, 'varied'))
 
     infopiece = []
     if coilpos:
@@ -35,39 +36,16 @@ def runanalysis(filename):
         infopiece += ["Turns: %d" % nturns]
     infotitle = ", ".join(infopiece)
 
-
     fig = pl.figure(1, figsize=(11.69, 8.27), dpi=100)
-    fig.text(.4, .95, infotitle) 
-
-    pl.subplot(2,2,1)
-
-    pl.quiver(Z, Y, BZ, BY)
-    pl.xlabel('Z')
-    pl.ylabel('Y')
-    pl.title('Magnetic field direction')
-
-    pl.subplot(2,2,2)
-    CS = pl.contour(Z, Y, BY/BZ)
-    pl.xlabel('Z')
-    pl.ylabel('Y')
-    pl.title('Y-strength/Z-strength')
-    pl.clabel(CS, inline=1, fontsize=10)
-
-    pl.subplot(2,2,3)
+    # pl.subplot(2,2,3)
+    pl.title("Bz-field as function of position and %s" %(vary))
     zpos = Z[:, 0]
     zfield = BZ[:,0]/BZ[0,0]
-    pl.plot(zpos, zfield)
+    pl.plot(zpos, zfield, label="%g" %(getdata(data, vary)))
     pl.xlabel('Z position')
     pl.ylabel('On axis field strength')
-
-    pl.subplot(2,2,4)
-    fieldstrength = np.sqrt(BY**2 + BZ**2)
-    CS = pl.contour(Z, Y, fieldstrength)
-    pl.xlabel('Z')
-    pl.ylabel('Y')
-    pl.title('Field strength', fontsize=10)
-    pl.clabel(CS, inline=1, fontsize=10)
-
+    pl.legend(loc='best')
+    return (max(abs(zfield - 1)), getdata(data, vary))
 
 if __name__ == "__main__":
     logname = ourgui.openFile(type="log")
@@ -78,6 +56,13 @@ if __name__ == "__main__":
                                'formats': ('a40', 'f4', 'f4', 'f4', 'i4')}
                         )
     
+    best = 1e14
+    bestval = None
     for log in logged:
-        runanalysis("%s.npz" %log['filename'])
+        maxdev, maxval = runanalysis("%s.npz" %log['filename'])
+        if maxdev < best:
+            best = maxdev
+            bestval = maxval
+            bestsetting = log['filename']
+    print "Best setting: %s (%f for %f)" %(bestsetting, best, bestval)
     pl.show()
