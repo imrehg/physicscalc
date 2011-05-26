@@ -209,8 +209,8 @@ def multipletripple(p, x):
     ''' Tripple convolution with single width for all '''
     n = int((len(p)-4)/2)
     xlim = x[-1] - x[0]
-    np = xlim*20+1    
-    xc = linspace(-xlim, xlim, np)
+    xc = linspace(-xlim, xlim, xlim*3+1)
+    np = xlim*3+1
     res = zeros(len(x))
     for i in xrange(n):
         x0N = p[i*2]
