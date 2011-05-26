@@ -38,5 +38,5 @@ pl.plot(x, yh, '-')
 pl.subplot(212)
 pl.plot(x, y-yh, '.')
 
-pl.savetxt(filename+".cvs", zip(x, y, yerr, yh), delimiter=',')
+pl.savetxt(filename+".csv", zip(x, y, yerr, yh), delimiter=',')
 pl.show()
