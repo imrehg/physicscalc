@@ -44,10 +44,13 @@ def partallan(args):
     print "Region length: ", n
     divisor = 2 * n**2 * (num - 2 * n + 1)
     pp = [ (y[j+n] - y[j])  for j in xrange(0, num - n) ]
-    part2 = np.array([np.sum(pp[i:(i+n)]) for i in xrange(0, num - 2*n+1)])
-    result = np.sum(part2**2) / divisor
-    return result
 
+    part2 = [np.sum(pp[:n])]
+    for i in xrange(1, num - 2*n + 1):
+        part2 += [part2[-1]-pp[i-1]+pp[i+n-1]]
+    part2 = np.array(part2)
+
+    return np.sum(part2**2) / divisor
 
 def allanover(freq, base):
     """ Allan variation with overlapping windows, parallel edition """
