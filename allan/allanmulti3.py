@@ -61,8 +61,7 @@ def allanover(freq, base):
     y = (freq - base) / base
     num, s = len(y), []
     # iter = apiter([1, 2, 5], num/2)
-    # iter = apiter(range(1, 10), num/2)
-    iter = apiter([1], num/2)
+    iter = apiter(range(1, 10), num/2)
     TASKS = [(y, num, n) for n in iter]
     try:
         out = pool.map_async(partallan, TASKS).get(999999)
