@@ -122,4 +122,5 @@ if __name__ == "__main__":
     while filename:
         files += [filename]
         filename  = ourgui.openFile(type="log")
-    main(files, highprec=True)
+    if len(files) > 0:
+        main(files, highprec=True)
