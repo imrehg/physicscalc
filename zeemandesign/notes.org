@@ -27,9 +27,12 @@
    + Off-axis design?
    + Laser detuning jitter (add extra width term?)
    + Estimate total flux
+   + Mean free path, vapour pressure and molecular flow regime
+   + Alkali poisoning (ref 8 in Bell)
+   + Field vs. current (repeat Bell figure 6)
 ** Code
    + Multicore functionality for more efficiency, in-situ reruns
-   + Compare with existing results (eg. run simulation with Bell2010 design)
+   + Compare with existing results (eg. run simulation with Bell2010 design: Rb85)
    + GUI to be able to rerun instantly with changed parameters
    + Steps to improve: on axis / transverse dimension / focused beam
    + Stop simulation at the end of the slower
