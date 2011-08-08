@@ -118,7 +118,7 @@ def tripple(p, xlim, np):
     pb = [0, G, 1]
     b = lorentz(pb, xlims)/lorentz(pb, 0)
     pc = [0, s, 1]
-    c = gauss(pc, xlims)/gauss(pb, 0)
+    c = gauss(pc, xlims)/gauss(pc, 0)
     o1 = convolve(a, b, mode=1)
     o2 = convolve(o1, c, mode=1)
     o2 = o2/o2[(np-1)/2]
