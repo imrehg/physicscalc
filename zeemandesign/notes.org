@@ -1,0 +1,36 @@
+* References used:
+  + Dedman2004 (math of slowing)
+  + Joffe1993
+  + Bell2010 (! Variable pitch)
+  (Check: Lin2009b)
+* Dimensionless variables
+  + Time: from linewidth
+  + Distance: from transition wavenumber
+  + Mass: atomic mass unit
+  + Magnetic field: Bohr-magneton
+* Todo:
+** Write up basic simulation (Tex)
+   + Dimensionless variables, their choices and conversion
+   + Detuning (+/- : red/blue??)
+   + Minimum length set by maximum deceleation: what is its value?
+** Read
+   + How to design a slower (from the above articles)
+   + Read design thesis from Ketterle group
+** Figure out
+   + How to parametrize coil? How to do arbitrary function?
+   + Velocity at given temperature, or velocity profile
+   + Simulation not function of time but distance?
+   + Optimize detuning?
+   + How much power?
+   + Most probably velocity: decelerate that?
+   + Design parameters ~ 0.4
+   + Off-axis design?
+   + Laser detuning jitter (add extra width term?)
+   + Estimate total flux
+** Code
+   + Multicore functionality for more efficiency, in-situ reruns
+   + Compare with existing results (eg. run simulation with Bell2010 design)
+   + GUI to be able to rerun instantly with changed parameters
+   + Steps to improve: on axis / transverse dimension / focused beam
+   + Stop simulation at the end of the slower
+   + Off-axis calculation: magnetic field direction, dB/dz, need to optimize there because most particles off-axis?
