@@ -11,78 +11,82 @@ import scipy.integrate as integ
 from scipy.interpolate import interp1d
 import pylab as pl
 
-##### Units
+# ##### Units
+# GRb = 38.117e6 # 2pi x 6.07MHz
+# kRb = 1281654.9389 * 2 * np.pi # 1/m
+# mU = 1.667e-27 # Mass: Atomic Mass Unit
+# tU = 1/GRb # Time: 1/linewidth
+# xU = 1/kRb # Distance: 1/wavenumber
+# # Planck constant rescaled
+# hU = 6.626e-34 / mU / xU / xU * tU
+# hbar = hU / 2 / np.pi
+# # Bohr-magneton rescaled
+# uB = hU * 1.399e6 * tU
+# BU = 1/uB # Magnetic field unit
+
+# # Dimensionless numbers
+# mRb = 86.909
+
+
+# # Some variables
+# k = 1.0
+# G = 1.0
+# s0 = 10
+# det0 = -2
+# Bb = 1 / BU
+# Bt = 3 / BU
+# gP3 = 1.3362
+# gS1 = 2.002
+# me = -4
+# mg = -3
+# uprime = uB * (gP3*me - gS1*mg)
+
+
+#### Dimensioned
 GRb = 38.117e6 # 2pi x 6.07MHz
-kRb = 1281654.9389 # 1/m
+kRb = 1281654.9389 * 2 * np.pi # 1/m
 mU = 1.667e-27 # Mass: Atomic Mass Unit
-tU = 1/GRb # Time: 1/linewidth
-xU = 1/kRb # Distance: 1/wavenumber
-# Planck constant rescaled
-hU = 6.626e-34 / mU / xU / xU * tU
-hbar = hU / 2 / np.pi
-# Bohr-magneton rescaled
-uB = hU * 1.399e6 * tU
-BU = 1/uB # Magnetic field unit
-
-# Dimensionless numbers
-mRb = 86.909
+mRb = 86.909 * mU
+h = 6.626e-34
+hbar = h / 2 / np.pi
+uprimehbar = 1.399e10 * 2 * np.pi
 
 
-# Some variables
-k = 1.0
-G = 1.0
-s0 = 10
-det0 = -2
-Bb = 1 / BU
-Bt = 3 / BU
-gP3 = 1.3362
-gS1 = 2.002
-me = -4
-mg = -3
-uprime = uB * (gP3*me - gS1*mg)
+# def bfield(z, z0, Bb, Bt):
+#     """ Currently non-functional """
+#     return z * 0
+#     # return Bb - Bt * np.sqrt(1 - z / z0)
 
-def bfield(z, z0, Bb, Bt):
-    """ Currently non-functional """
-    return z * 0
-    # return Bb - Bt * np.sqrt(1 - z / z0)
+def bfzero(z):
+    return z*0
 
-def decelerate(y, t):
+def decelerate(y, t, bfield, s0, det0):
     """ Decelartion function """
     x, v = y[0], y[1]
-    return [v, -hbar / (2*mRb) * s0 / (1 + s0 + 4*(det0 + v + bfield(x, Ls, Bb, Bt)*uprime/hbar)**2)]
+    return [v, -hbar * kRb * GRb / (2*mRb) * s0 / (1 + s0 + 4*(det0 + kRb * v - bfield(x)*uprimehbar)**2/GRb**2)]
+    # var = [v, -hbar * kRb / (2*mRb) * s0 / (1 + s0 + 4*(det0 + kRb * v - bfield(x)*uprimehbar)**2/GRb**2)]
+    # var = [v, -hbar * kRb * GRb / (2*mRb)]
+    # return var
 
-# #### From another source: ##########
-# ## Constants:
-# mu = 1.26e-6*1.5e-3
-# def bzfield(p, params, z):
-#     cord = params['cord']
-#     cp = params['cp']
-#     cn = params['cn']
-#     cpnew = [cp[i]*(cord-i) for i in range(0,cord)]
-#     cnnew = [cn[i]*(cord-i) for i in range(0,cord)]
-#     R = params['R']
-#     I = params['I']
-#     upperp = np.polyval(cpnew, p)
-#     lowerp = (R**2 + (np.polyval(cp[cord+1:], p)-z)**2)**(3/2)
-#     uppern = np.polyval(cnnew, p)
-#     lowern = (R**2 + (np.polyval(cn[cord+1:], p)-z)**2)**(3/2)
-#     return mu*I/(4*np.pi)*(upperp/lowerp + uppern/lowern)
+def simulate(v0, bfield):
+    s0 = 4
+    det0 = -260e6 * 2 * np.pi
+    
+    print (det0 + kRb*v0 - bfield(0)*uprimehbar)/GRb
+    print (det0 + kRb * v0 - bfield(0)*uprimehbar)/GRb
+    
+    t = sp.linspace(0, 1e-2, 300)
+    y0 = [0, v0]
 
-# ## Coil parameters
-# cp = [0, 1.58e-3, 0, -0.302, 8.698, 1.999, 0, -0.106, 0.581]
-# cn = [-0.0012, 0.0035, 0.02, -0.23, -1.257, -2, 3.14, 0.043, 0.62]
-# cord = 6
-# ## Input parameters
-# R = 0.0383
-# I = 110
-# params = {'R': R, 'cp': cp, 'cn': cn, 'cord': cord, 'I': I}
-# nump = 51
-# z = np.linspace(-0.3, 1.2, nump)
-# res = np.array([integ.quad(bzfield, 0, 2*np.pi, args=(params, zz))[0] for zz in z])*1e4 / BU  # magnetic field, T->G, then dimensionless 
-
-# ## End result: interpolated field for the slower
-# bfinter = interp1d(z, res)
-# ############### 
+    y = odeint(decelerate, y0, t, args=(bfield, s0, det0))
+    xi = y[:, 0]
+    vi = y[:, 1]
+    # # pl.plot(xi, (det0 + kRb * vi - bfield(xi)*uprimehbar) )
+    # # y = odeint(decelerate, y0, t, args=(bfzero, s0, det0))
+    # xi = y[:, 0]
+    # vi = y[:, 1]
+    pl.plot(xi, (det0 + kRb * vi - bfield(xi)*uprimehbar))
+    pl.show()
 
 # detu = -260e6 * 2*np.pi * tU
 # v = 365 / xU * tU
@@ -96,8 +100,8 @@ def decelerate(y, t):
 # pl.ylabel('detuning [1/s]')
 # pl.show()
 
-b = 0.015 * 1e4 * uprime / hbar
-print b
+# b = 0.015 * 1e4 * uprime / hbar
+# print b
 
 
 
@@ -180,3 +184,15 @@ print b
 # pl.show()
 
 
+if __name__ == "__main__":
+    """ Basic calculation """
+    bfieldfile = 'field.csv'
+    z, B = np.loadtxt(bfieldfile, unpack=True)
+    I = 110
+    Bz = interp1d(z, B*I)
+
+    z = np.linspace(0, 1, 201)
+    detu = 1.399e4 * Bz(z)
+    # pl.plot(z, detu)
+    # pl.show()
+    simulate(365, Bz)
