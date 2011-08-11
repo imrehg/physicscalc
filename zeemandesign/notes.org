@@ -30,6 +30,11 @@
    + Mean free path, vapour pressure and molecular flow regime
    + Alkali poisoning (ref 8 in Bell)
    + Field vs. current (repeat Bell figure 6)
+   + *Why are the atoms repelled at the exit??*
+     The interaction does not go to far-detuned near the zero velocity (far: >>5Gamma)
+     Different detuning actially works -283.125MHz gives a final velocity of 8m/s
+     Very sensitive of detuning
+     Why is in the Bell paper different? Final velocity ~40m/s. Could this be optimized by detuning?
 ** Code
    + Multicore functionality for more efficiency, in-situ reruns
    + Compare with existing results (eg. run simulation with Bell2010 design: Rb85)

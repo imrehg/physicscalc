@@ -69,23 +69,62 @@ def decelerate(y, t, bfield, s0, det0):
     # return var
 
 def simulate(v0, bfield):
-    s0 = 4
-    det0 = -260e6 * 2 * np.pi
+    s0 = 10
+    det0 = -283.125e6 * 2 * np.pi
     
     print (det0 + kRb*v0 - bfield(0)*uprimehbar)/GRb
     print (det0 + kRb * v0 - bfield(0)*uprimehbar)/GRb
-    
-    t = sp.linspace(0, 1e-2, 300)
-    y0 = [0, v0]
 
-    y = odeint(decelerate, y0, t, args=(bfield, s0, det0))
+    nu = 0.7
+    z0 = mRb * (365**2 - 20**2)/(nu * hbar *kRb * GRb)
+    print "Slower length: ", z0
+    
+    t = sp.linspace(0, 1e-2, 400)
+    y0 = [-0.3, v0]
+
+    y, info = odeint(decelerate, y0, t, args=(bfield, s0, det0), full_output=True)
     xi = y[:, 0]
     vi = y[:, 1]
     # # pl.plot(xi, (det0 + kRb * vi - bfield(xi)*uprimehbar) )
     # # y = odeint(decelerate, y0, t, args=(bfzero, s0, det0))
     # xi = y[:, 0]
     # vi = y[:, 1]
-    pl.plot(xi, (det0 + kRb * vi - bfield(xi)*uprimehbar))
+
+    # pl.plot(xi, (det0 + kRb * vi - bfield(xi)*uprimehbar))
+    pl.subplot(221)
+    pl.plot(xi, vi)
+    pl.xlabel('x')
+    pl.ylabel('v')
+
+    pl.subplot(222)
+    pl.plot(xi, (det0 + kRb * vi - bfield(xi)*uprimehbar)/GRb)
+    pl.xlabel('x')
+    pl.ylabel('detuning')
+
+
+    ai = [decelerate((x, v), 0, bfield, s0, det0)[1] for x, v in zip(xi, vi)]
+    pl.subplot(223)
+    # pl.plot(xi, ai)
+    # pl.xlabel('x')
+    pl.plot(vi, ai)
+    pl.xlabel('v')
+    pl.ylabel('a')
+
+    pl.subplot(224)
+    xt = np.linspace(-0.3, 1.2, 100)
+    # pl.plot(xt, bfield(xt), '.-')
+    # pl.plot([xt[0], xt[-1]], [0, 0])
+
+    # pl.plot(xt, bfield(xt)*uprimehbar/2/np.pi/1e6, '.')
+    # pl.plot(xi, (det0 + kRb * vi)/2/np.pi/1e6, '-')
+    # pl.plot([xt[0], xt[-1]], [0, 0])
+
+    pl.plot(vi, (det0 + kRb * vi - bfield(xi)*uprimehbar)/GRb+1/2)
+    pl.xlim([-50, 50])
+
+    pl.xlabel('x')
+    pl.ylabel('B(x)')
+
     pl.show()
 
 # detu = -260e6 * 2*np.pi * tU
@@ -195,4 +234,6 @@ if __name__ == "__main__":
     detu = 1.399e4 * Bz(z)
     # pl.plot(z, detu)
     # pl.show()
-    simulate(365, Bz)
+    # v0 = 365
+    v0 = 280
+    simulate(v0, Bz)
