@@ -46,7 +46,8 @@ import pylab as pl
 GRb = 38.117e6 # 2pi x 6.07MHz
 kRb = 1281654.9389 * 2 * np.pi # 1/m
 mU = 1.667e-27 # Mass: Atomic Mass Unit
-mRb = 86.909 * mU
+# mRb = 86.909 * mU
+mRb = 85 * mU  # Rb85
 h = 6.626e-34
 hbar = h / 2 / np.pi
 uprimehbar = 1.399e10 * 2 * np.pi
@@ -71,6 +72,7 @@ def decelerate(y, t, bfield, s0, det0):
 def simulate(v0, bfield):
     s0 = 10
     det0 = -283.125e6 * 2 * np.pi
+    det0 = -260e6 * 2 * np.pi
     
     print (det0 + kRb*v0 - bfield(0)*uprimehbar)/GRb
     print (det0 + kRb * v0 - bfield(0)*uprimehbar)/GRb
@@ -80,7 +82,7 @@ def simulate(v0, bfield):
     print "Slower length: ", z0
     
     t = sp.linspace(0, 1e-2, 400)
-    y0 = [-0.3, v0]
+    y0 = [-0.5, v0]
 
     y, info = odeint(decelerate, y0, t, args=(bfield, s0, det0), full_output=True)
     xi = y[:, 0]
@@ -90,16 +92,19 @@ def simulate(v0, bfield):
     # xi = y[:, 0]
     # vi = y[:, 1]
 
+    pl.figure(figsize=(11.69, 8.27))
+    Bn = 90
+    pl.suptitle('v0 = %.1f, s0 = %.2f, detuning = %.3fMHz, In = %dA' %(v0, s0, det0/2/np.pi/1e6, Bn))
     # pl.plot(xi, (det0 + kRb * vi - bfield(xi)*uprimehbar))
     pl.subplot(221)
     pl.plot(xi, vi)
-    pl.xlabel('x')
-    pl.ylabel('v')
+    pl.xlabel('x [m]')
+    pl.ylabel('v [m/s]')
 
     pl.subplot(222)
     pl.plot(xi, (det0 + kRb * vi - bfield(xi)*uprimehbar)/GRb)
     pl.xlabel('x')
-    pl.ylabel('detuning')
+    pl.ylabel('detuning [1/G]')
 
 
     ai = [decelerate((x, v), 0, bfield, s0, det0)[1] for x, v in zip(xi, vi)]
@@ -107,8 +112,8 @@ def simulate(v0, bfield):
     # pl.plot(xi, ai)
     # pl.xlabel('x')
     pl.plot(vi, ai)
-    pl.xlabel('v')
-    pl.ylabel('a')
+    pl.xlabel('v [m/s]')
+    pl.ylabel('a [m/s^2]')
 
     pl.subplot(224)
     xt = np.linspace(-0.3, 1.2, 100)
@@ -117,15 +122,46 @@ def simulate(v0, bfield):
 
     # pl.plot(xt, bfield(xt)*uprimehbar/2/np.pi/1e6, '.')
     # pl.plot(xi, (det0 + kRb * vi)/2/np.pi/1e6, '-')
-    # pl.plot([xt[0], xt[-1]], [0, 0])
+    pl.plot(xt, bfield(xt)*1e3, '.')
+    pl.plot(xi, (det0 + kRb * vi)/uprimehbar*1e3, '-')
+    pl.plot([xt[0], xt[-1]], [0, 0])
 
-    pl.plot(vi, (det0 + kRb * vi - bfield(xi)*uprimehbar)/GRb+1/2)
-    pl.xlim([-50, 50])
+    # pl.plot(vi, (det0 + kRb * vi - bfield(xi)*uprimehbar)/GRb+1/2)
+    # pl.xlim([-50, 50])
 
-    pl.xlabel('x')
-    pl.ylabel('B(x)')
+    pl.xlabel('x [m]')
+    pl.ylabel('B(x)/Detuning as magnetic field [mT]')
 
-    pl.show()
+
+def fig10(field):
+    s0 = 10
+    det0 = -260e6 * 2 * np.pi
+    t = sp.linspace(0, 3e-2, 400)
+    v0 = 365
+    y0 = [-0.5, v0]
+
+    z, Bp, Bn = field['z'], field['pos'], field['neg']
+    Ip = 110
+    Inlist = range(0, 95, 3)
+    terminal = 1
+    vval = []
+    bval = []
+    for In in Inlist:
+        print In
+        Bz = interp1d(z, Bp*Ip+Bn*In, bounds_error=False, fill_value=0)
+        y, info = odeint(decelerate, y0, t, args=(Bz, s0, det0), full_output=True)
+        speed = interp1d(y[:,0], y[:,1])
+        vval += [speed(terminal)]
+        bval += [-min(Bz(np.linspace(0.5, 0.9, 201)))*1e3]
+    pl.figure(figsize=(11.69, 8.27))
+    pl.plot(bval, vval, '.-')
+    pl.xlabel('Closing field maximum [mT]')
+    pl.ylabel('Velocity [m/s]')
+    pl.xticks([0, 5, 10, 15])
+    pl.yticks([0, 50, 100, 150, 200])
+    pl.xlim([0, 16])
+    pl.ylim([0, 210])
+
 
 # detu = -260e6 * 2*np.pi * tU
 # v = 365 / xU * tU
@@ -222,18 +258,24 @@ def simulate(v0, bfield):
 # # pl.plot(vlist, vfinal)
 # pl.show()
 
-
 if __name__ == "__main__":
     """ Basic calculation """
-    bfieldfile = 'field.csv'
-    z, B = np.loadtxt(bfieldfile, unpack=True)
-    I = 110
-    Bz = interp1d(z, B*I)
+    bfieldfile = 'coilfield.npz'
+    # z, B = np.loadtxt(bfieldfile, unpack=True)
+    field = np.load(bfieldfile)
+    z, Bp, Bn = field['z'], field['pos'], field['neg']
+    Ip = 110
+    In = 90
+    Bz = interp1d(z, Bp*Ip+Bn*In, bounds_error=False, fill_value=0)
 
     z = np.linspace(0, 1, 201)
     detu = 1.399e4 * Bz(z)
     # pl.plot(z, detu)
     # pl.show()
-    # v0 = 365
-    v0 = 280
+    v0 = 365
+    # v0 = 280
     simulate(v0, Bz)
+
+
+    fig10(field)
+    pl.show()
