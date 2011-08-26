@@ -89,10 +89,10 @@ def fitfunction(c, z):
     R = 0.0383
     params = {'R': R, 'cp': cp, 'cn': cn, 'cord': cord, 'I': I}
     # print c
-    try :
-        res = np.array([integ.quad(bzfield, 0, 2*np.pi, args=(params, zz))[0] for zz in z])
-    except:
-        res = integ.quad(bzfield, 0, 2*np.pi, args=(params, z))[0]
+    if type(z) == type(1):
+        z = np.array([z])
+    prange = np.linspace(0, 2*np.pi, 4001)
+    res = np.array([integ.trapz(bzfield(prange, params, zz), prange) for zz in z])
     return res
 
 def bideal(z):
