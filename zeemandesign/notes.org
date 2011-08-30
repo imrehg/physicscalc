@@ -42,3 +42,15 @@
    + Steps to improve: on axis / transverse dimension / focused beam
    + Stop simulation at the end of the slower
    + Off-axis calculation: magnetic field direction, dB/dz, need to optimize there because most particles off-axis?
+* Notes from meeting on <2011-08-19 Fri>
+  + Redo simulation of multiple layers
+    + Can represent data as fixed layer number but moving barriers
+    + Have to somehow calculate the right current as well
+  + Greendland1985 paper:
+    + get the atomic velocity distrubution and do some simulation based on that: longitudinal slowing, transverse not changed
+    + can do simpler calculation, but approximating out-diffusion time or something?
+    + compare optimization with previous naive method
+    + Small aperture calculation, how?
+  + Given a pitch, can we get the smallest current that can be used?
+  + Infinite solenoid formula
+  + Wu, Martin & Zwierlein, paper regarding multilayer structure
