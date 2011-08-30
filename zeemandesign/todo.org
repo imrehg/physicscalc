@@ -1,0 +1,21 @@
+* Layered design
+* Velocity distribution from paper
+* Minimum pitch
+
+
+* New list:
+** Layered design
+   + Calculate power consumption of simulated design
+   + Change the maximum capture value
+   + Simulate what happens with the exact field
+   + calculate eta for the simulated field (especially what happens on the low velocity end)
+** Continuously variable pitch
+   + Calculate power consumption
+   + Finish fitting to limit minimum pitch
+** Both designs
+   + Easy recalculation for different field profile (ie. different laser detuning and max capture velocity)
+
+
+* useful
+  + Copper wire resistance
+    http://www.epanorama.net/documents/wiring/wire_resistance.html
