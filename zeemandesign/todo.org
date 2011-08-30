@@ -14,8 +14,9 @@
    + Finish fitting to limit minimum pitch
 ** Both designs
    + Easy recalculation for different field profile (ie. different laser detuning and max capture velocity)
-
-
+** Writeup
+   + Continue LaTeX writeup, collect difficulties and rules of thumb calculations,
+     as well as useful references and tricks
 * useful
   + Copper wire resistance
     http://www.epanorama.net/documents/wiring/wire_resistance.html
