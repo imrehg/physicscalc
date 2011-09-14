@@ -59,7 +59,10 @@ def bideal(atom, z, eta, v0, vf=0, detuning=0):
         elif type(z) == type([1]):
             z = np.array(z)
         else:
-            return
+            raise TypeError('Input positions should be number, Python list or Numpy array')
+    if not (0 < eta <= 1):
+        raise ValueError('Efficiency has to be between 0 and 1')
+
 
     sl = slowerlength(atom.aslow, eta, v0, vf)
     detu = 2*np.pi*detuning*1e6 / uprimehbar

@@ -9,9 +9,9 @@ import scipy.odr as odr
 from time import strftime
 
 mu0 = 1.257e-6 # Tm/A
-R0 = 0.0383
-# R0 = 0.025
-d0 = 0.008
+# R0 = 0.0383
+# # R0 = 0.025
+# d0 = 0.008
 
 class memoized(object):
    """Decorator that caches a function's return value each time it is called.
@@ -43,7 +43,7 @@ class memoized(object):
       return functools.partial(self.__call__, obj)
 
 @memoized
-def loopfield(pos, n=1, R=R0, d=d0):
+def loopfield(pos, n, R, d):
     """ Magnetic field by a multilayer loop """
     x = np.array(pos)
     Ri = R
@@ -66,12 +66,14 @@ def coillength(n, R, d):
         length += 2*np.pi* Ri
     return length
 
-def totalcoillength(setup, R=R0, d=d0):
+def totalcoillength(setup, R, d):
     layernum, csign = getLayerNumber(setup)
     cl = sum([coillength(layer, R, d) for layer in layernum])
     return cl
 
-def fieldcalc(z, setup, curr=1, R=R0, d=d0):
+def fieldcalc(z, setup, curr=1):
+    R = setup['R']
+    d = setup['d']
     if type(z) == type(1):
         z = np.array([z])
     elif type(z) == type([1]):
@@ -85,18 +87,18 @@ def fieldcalc(z, setup, curr=1, R=R0, d=d0):
         out += multi*loopfield(tuple(z-czi), int(di), R, d)
     return out
 
-def bideal(z):
-    C1 = 0.015
-    C2 = 0.03
-    C3 = 1
-    C4 = 1.13
-    return -(C1 - C2 * np.sqrt(C3**2  - C4 * z))    
+# def bideal(z):
+#     C1 = 0.015
+#     C2 = 0.03
+#     C3 = 1
+#     C4 = 1.13
+#     return -(C1 - C2 * np.sqrt(C3**2  - C4 * z))    
 
-def bideal2(z):
-    extra = 5
-    zextra = np.append(np.append(-extra*R0+z[0], z), z[-1]+extra*R0)
-    field = normalize(np.append(np.append(0, bideal(z)), 0), 1)
-    return (zextra, field)
+# def bideal2(z):
+#     extra = 5
+#     zextra = np.append(np.append(-extra*R0+z[0], z), z[-1]+extra*R0)
+#     field = normalize(np.append(np.append(0, bideal(z)), 0), 1)
+#     return (zextra, field)
 
 def getLayerNumber(setup):
     """ Calculate the number of layers at the different loop positions """
@@ -119,12 +121,17 @@ def ssq(val):
 def seglen(segment):
     return segment[1] - segment[0]
 
-def optimize(zl, setup, maxtry=100):
-    zideal, fideal = bideal2(zl)
-    foriginal = normalize(fieldcalc(zideal, setup), 1)
+def optimize(zideal, fideal, setup, maxtry=100):
+    # zideal, fideal = bideal2(zl)
+    fideal = fideal/fideal[1]
+    foriginal = fieldcalc(zideal, setup)/fieldcalc(0, setup)
 
     oldval = ssq(fideal - foriginal)
-    
+    # pl.figure()
+    # pl.plot(zideal, fideal, 'o', label='target')
+    # pl.plot(zideal, foriginal, 'x', label='current')
+    # pl.legend(loc='best')
+
     nchoice = len(setup['layer']) - 1
     n = 0
     Temp = 0.1
@@ -147,7 +154,7 @@ def optimize(zl, setup, maxtry=100):
             lowseg[1] += 1
             highseg[0] += 1
 
-        field = normalize(fieldcalc(zideal, setup), 1)
+        field = fieldcalc(zideal, setup)/fieldcalc(0, setup)
         newval = ssq(fideal - field)
         # print np.exp((-newval + oldval)/Temp)
         if np.exp((-newval + oldval)/Temp) > random.rand():
@@ -164,70 +171,74 @@ def optimize(zl, setup, maxtry=100):
         n += 1
     return setup
 
-if __name__ == "__main__":
-
-
-    # The field that we want to match
-    nump = 61
-    zl = np.linspace(0, 0.88495, nump)
-
-    ze, fe = bideal2(zl)
-
-    # Our coil
-    coilpos = (-0.2, 1.1)
+def createStruct(z, d0, n):
+    coilpos = (z[0], z[1])
     nloops = int((coilpos[1] - coilpos[0]) / d0)
     loops = [coilpos[0]+i*d0 for i in xrange(nloops)]
-    # The number of layers
-    layer = [0,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 0]
-    # The direction of current
-    csign = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,-1,-1,-1,-1,-1,-1]
+
+    np, nn = n
+    layer = [0] + range(np, 0, -1) + range(0, nn+1) + [0]
+    csign = [1]*(np+2) + [-1]*(nn+1)
 
     defaultLayerLength = int(nloops / len(layer))
     start = 0
     segments = [[defaultLayerLength*i, defaultLayerLength*(i+1)] for i in range(len(layer))]
     segments[-1][-1] = nloops
 
+    return nloops, loops, layer, csign, segments
+
+if __name__ == "__main__":
+    import wires
+    import zeemanslower as zs
+
+
+    R = 0.0383
+    eta, v0, vf, detu = 0.7, 365, 20, 260
+    # The field that we want to match
+    nz = 61
+    atom = zs.Rb85()
+    sl = zs.slowerlength(atom.aslow, eta, v0, vf)
+    z = np.append([-5.5*R], np.append(np.linspace(0, sl, nz-2), sl+5.5*R))
+    bfield = zs.bideal(atom, z, eta, v0, vf, detu)
+
+
+    wire = wires.AWG9
+    # # Our coil
+    nloops, loops, layer, csign, segments = createStruct((z[0],z[-1]), wire[0], (10, 10))
+
     setup = {'looppos': loops,
              'layer': layer,
              'csign': csign,
              'segments': segments,
+             'R': R,
+             'd': wire[0],
              }
     
-    # # # How our cross cut looks 
-    # # pl.plot(setup['looppos'], getLayerNumber(setup))
-    # # pl.show()
-
-    
-
-    # # ideal = bideal(zl)
-    # # ideal = ideal / ideal[0]
-    # # calcfield = fieldcalc(zl, setup)
-    # # calcfield = calcfield / calcfield[0]
-    # # pl.plot(zl, ideal, 'x')
-    # # pl.plot(zl, calcfield)
-    # # pl.plot([0, 0.9], [0, 0])
-    # # pl.show()
-
-    # # # import time
-    # # # start = time.time()
-    # # # for i in xrange(100):
-    # # #     fieldcalc(zl, setup)
-    # # # print time.time()-start
-
-    # pl.figure()
-    # pl.plot(ze, fe, 'x')
-    # pl.plot(ze, normalize(fieldcalc(ze, setup), 1), 'g--')
-    newsetup = optimize(zl, setup, maxtry=25000)
-    zz = np.append(np.linspace(-6*R0, 0.1, 10),  np.linspace(0, 1.1, 101))
-    pl.plot(ze, fe, 'x')
-    pl.plot(ze, normalize(fieldcalc(ze, setup), 1), 'g--')
-    pl.plot(zz, normalize(fieldcalc(zz, newsetup), 10), 'r-')
+    newsetup = optimize(z, bfield, setup, maxtry=10000)
+    # newsetup = setup
+    # pl.plot(z, bfield, 'x')
+    ze = np.linspace(z[0], z[-1], 201)
+    pl.figure(figsize=(11.69, 8.27))
+    pl.plot(ze, fieldcalc(ze, newsetup)/fieldcalc(0, newsetup), 'r-', linewidth=2, label='coil field')
+    pl.plot(z, bfield/bfield[1], 'ko', markersize=5, label='target field')
+    pl.title("%s, R: %g mm, v: %d-%d m/s, %d MHz" %(wire[2], R*1e3, v0, vf, detu))
+    pl.xlabel('position (m)')
+    pl.ylabel('normalized magnetic field')
+    pl.legend(loc='best')
+    # pl.plot(zz, normalize(fieldcalc(zz, newsetup), 10), 'r-')
     # print newsetup['segments']
 
-    # from tempfile import NamedTemporaryFile
-    # outfile = NamedTemporaryFile(prefix='layer', suffix='.npz', dir='.', delete=False)
-    outfile = "layers_%s.npz" %(strftime("%y%m%d_%H%M%S"))
-    print outfile
-    np.savez(outfile, setup=setup, ideal=bideal2(zl), d0=d0)
-
+    simulation = {'R': R,
+                  'eta': eta,
+                  'v0': v0,
+                  'vf': vf,
+                  'detu': detu,
+                  'wire': wire,
+                  'setup': newsetup
+                  }
+    series = 0
+    savefile = "%d_%s" %(series, wire[2])
+    np.savez("%s", simulation=simulation)
+    pl.savefig('%s.png' %savefile)
     pl.show()
+    
