@@ -45,14 +45,14 @@ def getdata(filename):
 
 # getdata("10_AWG7.npz")
 
-
-for maxwind in range(5, 11):
+colours = ['b', 'g', 'r', 'y', 'k', 'm']
+for k, maxwind in enumerate(range(5, 11)):
     powers = []
     currents = []
     lengths = []
     resistances = []
     reducedareas = []
-    csize = range(1, 8)
+    csize = range(1, 11)
     for i in csize:
         # maxwind = 5
         filename = "%d_AWG%d.npz" %(maxwind, i)
@@ -63,28 +63,44 @@ for maxwind in range(5, 11):
         resistances += [resistance*1e3]
         reducedareas += [reducedarea]
 
+    filename = "%d_hollow.npz" %(maxwind)
+    hcurrent, hlength, hpower, hresistance, hreducedarea = getdata(filename)
+
     pl.figure(num=1, figsize=(11.69, 8.27))
     pl.subplot(221)
-    pl.plot(csize, powers, 'o-', label='W=%d' %maxwind)
+    pl.plot(csize, powers, colours[k]+'o-', label='W=%d' %maxwind)
+    pl.plot(11, hpower, colours[k]+'o')
     pl.xlabel('AWG number')
     pl.ylabel('Total power (W)')
+    pl.xticks( csize[0::]+[11],  (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'hollow') )
+    pl.xlim([0, 12])
 
     pl.subplot(222)
-    pl.plot(csize, currents, 'o-', label='W=%d' %maxwind)
+    pl.plot(csize, currents, colours[k]+'o-', label='W=%d' %maxwind)
+    pl.plot(11, hcurrent, colours[k]+'o')
     pl.xlabel('AWG number')
     pl.ylabel('Total current (I)')
+    pl.xticks( csize[0::]+[11],  (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'hollow') )
+    pl.xlim([0, 12])
 
     pl.subplot(223)
-    pl.plot(csize, lengths, 'o-', label='W=%d' %maxwind)
+    pl.plot(csize, lengths, colours[k]+'o-', label='W=%d' %maxwind)
+    pl.plot(11, hlength, colours[k]+'o')
     pl.xlabel('AWG number')
     pl.ylabel('Total wire length (m)')
     # pl.legend(loc='best')
+    pl.xticks( csize[0::]+[11],  (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'hollow') )
+    pl.xlim([0, 12])
 
     pl.subplot(224)
-    pl.plot(csize, resistances, 'o-', label='W=%d' %maxwind)
+    pl.plot(csize, resistances, colours[k]+'o-', label='W=%d' %maxwind)
+    pl.plot(11, hresistance*1e3, colours[k]+'o')
     pl.xlabel('AWG number')
     pl.ylabel('Total resistance (mOhm)')
     pl.legend(loc='best')
+    pl.xticks( csize[0::]+[11],  (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'hollow') )
+    pl.xlim([0, 12])
+
     # pl.plot(csize, reducedareas, 'o-', label='W=%d' %maxwind)
     # pl.xlabel('AWG number')
     # pl.ylabel('Area reduction')
