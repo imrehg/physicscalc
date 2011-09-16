@@ -55,13 +55,21 @@ if __name__ == "__main__":
     #     area += [ angleArea(thval, r1, r2, l) ]
     # area = np.array(area)
 
+    plotdouble = False
     if result is not None:
         toplot = [val[0] for val in result if val[2]]
         ntotal = len(result)
         ngood = len(toplot)
         print ngood/ntotal
         pl.figure(1, figsize=(11.69/1.5, 8.27/1.5))
-        n, bins, patches = pl.hist(toplot, 30, facecolor='green', alpha=0.75, label='Simulation')
+
+        if plotdouble:
+            total = [val[0] for val in result]
+            ns, bins, patcheses = pl.hist([toplot, total], 30, alpha=0.75, label=['Simulation', 'Total atoms in angle bucket'])
+            n = ns[0]
+        else:
+            n, bins, patches = pl.hist(toplot, 30, facecolor='green', alpha=0.75, label='Simulation')
+
 
         pos = bins[1:]-(bins[1]-bins[0])/2
         th = pos
@@ -80,10 +88,17 @@ if __name__ == "__main__":
         pl.ylabel('Number of atoms')
         pl.title('Total number: %d, r: (%g,%g), L: %g' %(ntotal, r1, r2, l))
         pl.legend(loc='best')
-        pl.savefig('pinhole_1_20.pdf')
+        # pl.savefig('pinhole_1_20.pdf')
 
         pl.figure(2)
         pl.plot(pos, n/ntotal,'--')
         pl.plot(th, dist, 'r-', linewidth=2)
+
+        if plotdouble:
+            pl.figure(3)
+            pl.plot(pos, ns[0]/ns[1], '--')
+            dist2 = area/(np.pi*r1*r1)
+            pl.plot(th, dist2, 'k-', linewidth=3)
+            pl.title('Escape probablity by angle')
 
         pl.show()
