@@ -40,22 +40,23 @@ if __name__ == "__main__":
 
     #### All parameters
     atom = zs.Cs133()
-    T = 80 + 273 # Kelvin
+    T = 60 + 273 # Kelvin
     P = 3e-5 # vapour pressure in torr
     r = 1e-3 # pinhole radius
     lcoll = 76.2e-3 # collimator length
-    eta = 0.5
-    v0 = 154
-    vf = 42
-    # eta = 0.82
-    # v0 = 205
-    # vf = 50
+    # eta = 0.5
+    # v0 = 154
+    # vf = 42
+    eta = 0.82
+    v0 = 205
+    vf = 50
     r2 = 3.5e-3
     l1 = 200e-3
     l2 = 400e-3
     l3 = 150e-3
     #### No parameters after this
     P = CsPv(T) # fix vapour pressure from doc
+    print "Calculated vapour pressure %g torr" %(P)
 
     l2new = zs.slowerlength(atom.aslow, eta, v0, vf)
     print "Slower correct length: %g" %(l2new)
@@ -91,6 +92,7 @@ if __name__ == "__main__":
         print "System is limited by Zeeman tube diameter"
         # fraqDPrevised = np.sin(thmaxz)**2 / 4
         fraqDPrevised = np.sin(thmax)**2 / 4 * 0.17
+        # fraqDPrevised = np.sin(thmax)**2 / 4 * (thmaxz/thmax)
         influx4 = vfraq * fraqDPrevised * influx
         print "Pinhole plus slower limited fraction", fraqDPrevised
         print("Revised flux --> %g" %(influx4))
