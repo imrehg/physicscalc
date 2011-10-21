@@ -28,14 +28,17 @@ def overlap(r1, r2, d):
     return ret
 
 def angleArea(th, r1, r2, l):
-    d = np.sin(th)*l
+    ##### # d = np.sin(th)*l # Wrong
+    # d = np.sin(th)*l
+    d = np.tan(th)*l
     return overlap(r1, r2, d)
 
 if __name__ == "__main__":
 
 
     # filename = "pinhole_1_20.npz"
-    filename = "pinhole_1_1.npz"
+    # filename = "pinhole_1_1.npz"
+    filename = "pinhole_0.5_20.npz"
     if filename:
         data = np.load(filename)
         sim = data['sim'][()]

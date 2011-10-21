@@ -22,6 +22,14 @@ class Rb85:
         self.m = 85 * mU  # Rb85
         self.aslow = hbar*self.k*self.G/(2*self.m)
 
+class Cs133:
+    """ Cesium-133 atom parameters """
+    def __init__(self):
+        self.G = 32.889e6 # 2pi x 5.234MHz
+        self.k = 1173230.7104 * 2 * np.pi # 1/m
+        self.m = 132.905451 * mU  # Rb85
+        self.aslow = hbar*self.k*self.G/(2*self.m)
+
 #### Helper functions
 
 def slowerlength(aslow, eta, v0, vf = 0):
