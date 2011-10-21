@@ -22,12 +22,15 @@ if __name__ == "__main__":
     L = int(raw_input("Length (if r=1): "))
 
     for i in xrange(nrep):
-        x1, y1, a, b = random.rand(4)
+        xp, yp, a, b = random.rand(4)
+
+        x1 = 2*xp-1
+        y1 = 2*yp-1
         r = np.sqrt(x1*x1 + y1*y1)
         while r > 1:
             x1, y1 = random.rand(2)
             r = np.sqrt(x1*x1 + y1*y1)
-        th = np.arcsin(a)
+        th = np.arcsin(np.sqrt(a))
         phi = b * 2 * np.pi
         x2 = x1 + L * np.tan(th) * np.cos(phi)
         y2 = y1 + L * np.tan(th) * np.sin(phi)
