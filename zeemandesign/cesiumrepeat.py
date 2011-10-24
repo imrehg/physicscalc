@@ -79,8 +79,24 @@ if __name__ == "__main__":
     u = np.sqrt(2 * kB * T / atom.m)
     print "Most probable velocity: ", u
 
-    C = 1/u**2
-    vfraq = 1 - np.exp(-C*v0**2) * (1 + C*v0**2)
+    vpdf = lambda v: v**3 * np.exp(-v**2/u**2)
+    # vpdf = lambda v: v**2 * np.exp(-v**2/u**2)
+    vnorm = integ.quad(vpdf, 0, 1000)[0]
+    vmeancalc = lambda v: v*vpdf(v)
+    vmean = integ.quad(vmeancalc, 0, 1000)[0] / vnorm
+    print "Mean velocity: ", vmean
+    vcapture2 = integ.quad(vpdf, 0, v0)[0] / vnorm
+
+    v = np.linspace(0, 700, 301)
+    pl.plot(v/u, vpdf(v)/vnorm)
+    pl.fill_between(v[v<u]/u, vpdf(v[v<u])/vnorm)
+    pl.xlabel('velocity (units of sqrt(2 kB T / m))')
+    pl.ylabel('probability density function')
+
+    # # Analytical expression in the v^3 case
+    # C = 1/u**2
+    # vfraq = 1 - np.exp(-C*v0**2) * (1 + C*v0**2)
+    vfraq = vcapture2
     print "Velocity capture fraction", vfraq
     influx3 = vfraq * influx2
     print("Flux after slower: %g" %(influx3))
@@ -90,11 +106,12 @@ if __name__ == "__main__":
     print "Zeeman max angle", thmaxz
     if (thmaxz < thmax):
         print "System is limited by Zeeman tube diameter"
-        # fraqDPrevised = np.sin(thmaxz)**2 / 4
-        fraqDPrevised = np.sin(thmax)**2 / 4 * 0.17
-        # fraqDPrevised = np.sin(thmax)**2 / 4 * (thmaxz/thmax)
+        maxy = np.tan(thmaxz)*lcoll / (2*r)
+        fraqDPrevised = partialPinhole(maxy, r, lcoll)
         influx4 = vfraq * fraqDPrevised * influx
-        print "Pinhole plus slower limited fraction", fraqDPrevised
+        print "Pinhole plus slower geometric", fraqDPrevised
         print("Revised flux --> %g" %(influx4))
     else:
         influx4 = influx3
+
+    pl.show()
