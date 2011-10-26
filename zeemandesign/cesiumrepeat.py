@@ -198,3 +198,24 @@ if __name__ == "__main__":
     # pl.xlabel('v_z')
     # pl.ylabel('v_r')
     # pl.show()
+
+    eta = 0.82
+    vf = 50
+    vf /= u
+
+    sl = np.linspace(0.2, 1.2, 10)
+    cfraqb = np.array([])
+    for l2 in sl:
+        print "Slower length: ", l2
+        v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
+
+        v0 = v0new/u
+
+        args2 = (r, r2, lcoll+l1+l2)
+        bvrmax = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u) # broadening
+
+        uePin2 = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=args2)[0]
+        cfraqb = np.append(cfraqb, uePin2)
+
+    pl.plot(sl, cfraqb)
+    pl.show()
