@@ -40,13 +40,66 @@ def partialPinhole(ymax, r, L):
     X = lambda y: 2/np.pi*(np.arccos(y) - y*np.sqrt(1-y**2))*2*y*(2*r*L / (L**2+4*r**2*y**2))**2
     return integ.quad(X, 0, ymax)[0]
 
-def ttime(v, vf, l1, l2, l3, a):
-    lB = (v**2 - vf**2)/(2*a)
-    t1 = l1/v
-    t2 = (l2 - lB)/v
-    t3 = (v - np.sqrt(v**2 - 2 * a * lB))/(2*a)
+def intfunc(vr, vz, r, L):
+    """ Double pinhole solution in the cylindrical coordinate case """
+    y = L/(2*r)*(vr/vz)
+    if y > 1 or y < 0:
+        return 0
+    X = 2/np.pi*(np.arccos(y) - y*np.sqrt(1-y**2)) # overlapping pinholes case
+    intpart = vr * np.exp(-vr**2) * vz * np.exp(-vz**2) * 4 * X # velocity distribution, normalization and double pinhole
+    return intpart
+
+def ueintfunc(vr, vz, r1, r2, L):
+    y = L/(r1+r2)*(vr/vz)
+    if y > 1 or y < 0:
+        return 0
+    d = (r1+r2)*y
+    X = overlap(r1, r2, d) / np.minimum(r1, r2)**2 / np.pi
+    intpart = vr * np.exp(-vr**2) * vz * np.exp(-vz**2) * 4 * X # velocity distribution, normalization and double pinhole
+    return intpart
+
+def ttime(v, vf, l1, l2, l3, a, u=1):
+    """ Transit time """
+    if type(v) == type(1.0) or type(v) == type(1):
+        v = np.array([v])
+    slowindex = np.nonzero(v > vf)[0]
+    nonslowindex = np.nonzero(v <= vf)[0]
+    tout = np.zeros(len(v))
+    
+    v *= u
+    vf *= u
+    vs = v[slowindex]
+    lB = (vs**2 - vf**2)/(2*a)
+    t1 = l1/vs
+    t2 = (l2 - lB)/vs
+    t3 = (vs - np.sqrt(vs**2 - 2 * a * lB))/(2*a)
     t4 = l3 /vf
-    return t1+t2+t3+t4
+    tout[slowindex] = t1+t2+t3+t4
+    tout[nonslowindex] = (l1+l2+l3)/v[nonslowindex]
+    return tout
+
+
+def overlap(r1, r2, d):
+    """ 
+    Overlapping area of circles
+
+    r1, r2: the two circle's radius
+    d: distance of their centre
+    """
+    rmax = r1 if r1 >= r2 else r2
+    rmin = r1 if r1 <= r2 else r2
+
+    if d >= (r1+r2):
+        ret = 0
+    elif (d+rmin) > rmax:
+        c1 = r1*r1*np.arccos( (d*d + r1*r1 - r2*r2) / (2 * d * r1) )
+        c2 = r2*r2*np.arccos( (d*d + r2*r2 - r1*r1) / (2 * d * r2) )
+        c3 = -0.5 * np.sqrt( (-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2) )
+        ret = c1 + c2 + c3
+    else:
+        ret = np.pi*rmin*rmin
+    return ret
+
 
 if __name__ == "__main__":
 
@@ -69,12 +122,17 @@ if __name__ == "__main__":
     rmot = (25.4e-3)/2
     #### No parameters after this
     P = CsPv(T) # fix vapour pressure from doc
-    print "Calculated vapour pressure %g torr" %(P)
+    print "Calculated vapour pressure %.3e torr" %(P)
 
-    l2new = zs.slowerlength(atom.aslow, eta, v0, vf)
-    print "Slower correct length: %g" %(l2new)
-    l2 = l2new
+    # l2new = zs.slowerlength(atom.aslow, eta, v0, vf)
+    # print "Slower correct length: %g" %(l2new)
+    v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
+    print "Calculated capture velocity: %g m/s" %(v0new)
 
+    u = np.sqrt(2 * kB * T / atom.m)
+    print "Most probable velocity: ", u
+    v0 /= u
+    vf /= u
 
     baseflux = flux.flux(T, atom.m, P)
     print "Baseflux: ", baseflux
@@ -82,90 +140,40 @@ if __name__ == "__main__":
     influx = r**2 * np.pi * baseflux
     print "Flux through first pinhole: ", influx
 
-
-    dPin = doublePinFrac(r, lcoll)
+    # dPin = doublePinFrac(r, lcoll)
+    # print "Fractional flux out of double pinhole:", dPin
+    DPvrmax = lambda x: 2*r/lcoll*x # example of allowed limit
+    dPin = integ.dblquad(intfunc, 0, np.inf, lambda x: 0, DPvrmax, args=(r, lcoll))[0]
     print "Fractional flux out of double pinhole:", dPin
+
     influx2 = influx * dPin
     print "Absolute flux out of double pinhole: %g" %(influx2)
 
-    thmax = np.arctan(2 * r / lcoll)
 
-    u = np.sqrt(2 * kB * T / atom.m)
-    print "Most probable velocity: ", u
+    DPvrmax = lambda x: 2*r/lcoll*x # example of allowed limit
+    vPin = integ.dblquad(intfunc, 0, v0, lambda x: 0, DPvrmax, args=(r, lcoll))[0]
+    print "Fractional flux through pinhole and slower:", vPin
+    print "Velocity capture fraction", vPin/dPin
 
-    vpdf = lambda v: v**3 * np.exp(-v**2/u**2)
-    # vpdf = lambda v: v**2 * np.exp(-v**2/u**2)
-    vnorm = integ.quad(vpdf, 0, 1000)[0]
-    vmeancalc = lambda v: v*vpdf(v)
-    vmean = integ.quad(vmeancalc, 0, 1000)[0] / vnorm
-    print "Mean velocity: ", vmean
-    vcapture2 = integ.quad(vpdf, 0, v0)[0] / vnorm
+    Zvrmax = lambda x: r2/(l1+l2)*x # example of allowed limit
+    zLim = integ.dblquad(intfunc, 0, v0, lambda x: 0, Zvrmax, args=(r, lcoll))[0]
+    print "Fractional flux limited by Zeeman slower geomtery:", zLim
+    print "Geometry fraction", zLim / vPin
 
-    v = np.linspace(0, 700, 301)
-    pl.plot(v/u, vpdf(v)/vnorm)
-    pl.fill_between(v[v<u]/u, vpdf(v[v<u])/vnorm)
-    pl.xlabel('velocity (units of sqrt(2 kB T / m))')
-    pl.ylabel('probability density function')
+    uePin = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, lambda x: np.inf, args=(r, r2, lcoll+l1+l2))[0]
+    print "Unequal pinholes: %e (%e)" %(uePin, uePin*influx)
 
-    # # Analytical expression in the v^3 case
-    # C = 1/u**2
-    # vfraq = 1 - np.exp(-C*v0**2) * (1 + C*v0**2)
-    vfraq = vcapture2
-    print "Velocity capture fraction", vfraq
-    influx3 = vfraq * influx2
-    print("Flux after slower: %g" %(influx3))
+    #### Experimental:
+    print "Experiment", "="*10
+    eta = 0.82
+    vf = 50
+    v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
+    vf /= u
+    v0 = v0new/u
+    
+    # bvrmax= lambda x: np.minimum(rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta), r2/(l1+l2)*x)
+    bvrmax = lambda x: np.inf
+    # bvrmax = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u) ### broadening is not correct yet
+    uePin = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=(r, r2, lcoll+l1+l2))[0]
+    print "Unequal pinholes: %e (%e)" %(uePin, uePin*influx)
 
-    thmaxz = np.arctan(r2/(l1+l2))
-    print "Pinhole max angle", thmax
-    print "Zeeman max angle", thmaxz
-    if (thmaxz < thmax):
-        print "System is limited by Zeeman tube diameter"
-        maxy = np.tan(thmaxz)*lcoll / (2*r)
-        fraqDPrevised = partialPinhole(maxy, r, lcoll)
-        influx4 = vfraq * fraqDPrevised * influx
-        print "Pinhole plus slower geometric", fraqDPrevised
-        print("Revised flux --> %g" %(influx4))
-    else:
-        influx4 = influx3
-
-    # print "Transit time for", v0, " m/s:", ttime(v0, vf, l1, l2, l3, atom.aslow*eta)
-    pl.figure()
-    vz = np.linspace(vf, v0, 101)
-
-    # pl.plot(v, rmot/(v*ttime(v, vf, l1, l2, l3, atom.aslow*eta)))
-    # pl.plot([v[0], v[-1]], [thmax, thmax])
-    # pl.plot([v[0], v[-1]], [thmaxz, thmaxz])
-    tr = ttime(vz, vf, l1, l2, l3, atom.aslow*eta)
-
-    tr2 = ttime(vz, vf, l1, l2, 0, atom.aslow*eta)
-
-    pl.plot(vz, vz*np.tan(2*r/lcoll), 'k-', label='collimator limited', linewidth=2)
-    pl.plot(vz, rmot/tr, 'r--', label='transverse broading limited (at MOT)', linewidth=2)
-    pl.plot(vz, r2/tr2, 'b:', label='transverse broading limited (at slower)', linewidth=2)
-    pl.xlabel('Vz (m/s)')
-    pl.ylabel('Vr (m/s)')
-    pl.legend(loc='best')
-
-
-    # dblquad(lambda t, x: exp(-x*t)/t**n, 0, Inf, lambda x: 1, lambda x: Inf)
-    def intfunc(vr, vz):
-        theta = np.arctan(vr / vz)
-        y = lcoll * (vr / vz) / (2 * r)
-        return vpdf(np.sqrt(vr**2 + vz**2))/vnorm*np.cos(theta)*np.sin(theta)*2/np.pi*(np.arccos(y) - y*np.sqrt(1-y**2))
-
-    # translim = integ.dblquad(intfunc, vf, v0, lambda x: 0, lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta))[0]
-    translim = integ.dblquad(intfunc, vf, v0, lambda x: 0, lambda x: r/ttime(x, vf, l1, l2, 0, atom.aslow*eta))[0]
-    transtot = integ.dblquad(intfunc, vf, v0, lambda x: 0, lambda x: np.tan(thmax)*x)[0]
-    # # Debug plotting
-    # vx = v0
-    # vr = np.linspace(0, np.tan(thmax)*vx, 101)
-    # vr2 = np.linspace(0, r2/ttime(vx, vf, l1, l2, 0, atom.aslow*eta), 101)
-    # pl.figure()
-    # pl.plot(vr, intfunc(vr, vx))
-    # pl.fill_between(vr2, intfunc(vr2, vx))
-    transfraq = translim/transtot
-    influx4 = vfraq * dPin * transfraq * influx
-    print("Revised flux2--> %g" %(influx4))
-
-
-    pl.show()

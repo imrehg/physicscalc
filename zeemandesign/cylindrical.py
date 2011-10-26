@@ -45,10 +45,9 @@ if __name__ == "__main__":
     l3 = 150e-3
     rmot = (25.4e-3)/2
 
-    r2 = 0.1
     # Double pinhole dimensions
-    r = 1
-    L = 76.4
+    r = 1e-3
+    L = 76.4e-3
 
     W = 2*r/L
     X = W**2/(1+W**2)
@@ -56,17 +55,33 @@ if __name__ == "__main__":
 
     ### Can adjust these
     vrmax = lambda x: np.inf # Normal limit
-    vrmax = lambda x: 2*r/L*x / 2 # example of half the allowed limit
-    vrmax = lambda x: 2*r/L*x / 2.8925 # example of half the allowed limit
-    vrmax = lambda x: r2/ttime(x, vf, l1, l2, l3, atom.aslow*eta) ### !!!!!! Gives incorrect result at the moment
+    vrmax = lambda x: 2*r/L*x # example of allowed limit
+    # vrmax = lambda x: 2*r/L*x / 2.8925 # example of fraction of the allowed limit
+    # vrmax = lambda x: r2/ttime(x, vf, l1, l2, l3, atom.aslow*eta) ### !!!!!! Gives incorrect result at the moment
     ###
 
     translim = integ.dblquad(intfunc, 0, np.inf, lambda x: 0, vrmax, args=(r, L))[0]
     print "Double pinhole capture fraction", translim
 
-    print "Ratio", X/translim
+    # # Adjusting slower length to match aspect ratio
+    # l1 = 0.05
+    # l3 = rmot/(2*r/L)-(l1+l2)
+    # print l3
 
-    vz = np.linspace(1, 100, 200)
-    pl.plot(vz, r2/ttime(vz, vf, l1, l2, l3, atom.aslow*eta))
-    pl.plot(vz, 2*r/L*vz)
+    vz = np.linspace(1, 300, 200)
+    tt = ttime(vz, vf, l1, l2, l3, atom.aslow*eta)
+    pl.plot(vz, rmot/tt, 'g:', label='Broadening', linewidth=3)
+    pl.plot(vz, r2/(l1+l2)*vz, 'r--', label='Slower geometry limit', linewidth=3)
+    pl.plot(vz, 2*r/L*vz, 'k-', label='pinhole limit', linewidth=3)
+    pl.xlabel(r'$v_z$', fontsize=15)
+    pl.ylabel(r'$v_r$', fontsize=15)
+    pl.legend(loc='best')
+
+
+    vrmaxbroad = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta)
+    translimbroad = integ.dblquad(intfunc, 0, v0, lambda x: 0, vrmaxbroad, args=(r, L))[0]
+    print "Velocity capture:", translimbroad
+    translimbroad2 = integ.dblquad(intfunc, 0, np.inf, lambda x: 0, vrmaxbroad, args=(r, L))[0]
+    print "Velocity capture:", translimbroad/translimbroad2
+
     pl.show()
