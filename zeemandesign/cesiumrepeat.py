@@ -170,7 +170,8 @@ if __name__ == "__main__":
     v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
     vf /= u
     v0 = v0new/u
-    
+    print "New max velocity:", v0new
+
     # bvrmax= lambda x: np.minimum(rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta), r2/(l1+l2)*x)
     # bvrmax = lambda x: np.inf
     bvrmax = lambda x: v0
@@ -180,3 +181,12 @@ if __name__ == "__main__":
     uePin2 = integ.dblquad(ueintfunc, 0, np.inf, lambda x: 0, bvrmax, args=args2)[0]
     print "Unequal pinholes: %e (%e)" %(uePin, uePin*influx)
     print uePin/uePin2
+
+    v = np.linspace(0, 200, 201)/u
+    tt = ttime(v, vf, l1, l2, l3, atom.aslow*eta, u)
+    pl.plot(v, rmot/(l1+l2+l3)*v, 'r-', label="Geometric limit", linewidth=3)
+    pl.plot(v, rmot/tt, 'k--', label='Broadening limit', linewidth=3)
+    pl.legend(loc='best')
+    pl.xlabel('v_z')
+    pl.ylabel('v_r')
+    pl.show()
