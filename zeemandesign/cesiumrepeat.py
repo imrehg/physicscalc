@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     u = np.sqrt(2 * kB * T / atom.m)
     print "Most probable velocity: ", u
-    v0 /= u
+    v0 = v0new /u
     vf /= u
 
     baseflux = flux.flux(T, atom.m, P)
@@ -159,34 +159,42 @@ if __name__ == "__main__":
     zLim = integ.dblquad(intfunc, 0, v0, lambda x: 0, Zvrmax, args=(r, lcoll))[0]
     print "Fractional flux limited by Zeeman slower geomtery:", zLim
     print "Geometry fraction", zLim / vPin
+    print "=> \"Naive geometric limitation\" %e (%e)" %(zLim, zLim * influx)
 
-    uePin = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, lambda x: np.inf, args=(r, r2, lcoll+l1+l2))[0]
-    print "Unequal pinholes: %e (%e)" %(uePin, uePin*influx)
+    # Geometric limit
+    bvrmax = lambda x: 2*r2/(lcoll+l1+l2) * x
+    uePin = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=(r, r2, lcoll+l1+l2))[0]
+    print "=> Unequal pinholes: %e (%e)" %(uePin, uePin*influx)
 
     #### Experimental:
-    print "Experiment", "="*10
+    print "\nExperiment", "="*10
     eta = 0.82
     vf = 50
+    # eta = 0.5
+    # vf = 42
     v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
     vf /= u
     v0 = v0new/u
     print "New max velocity:", v0new
 
-    # bvrmax= lambda x: np.minimum(rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta), r2/(l1+l2)*x)
-    # bvrmax = lambda x: np.inf
-    bvrmax = lambda x: v0
-    bvrmax = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u) ### broadening is not correct yet
-    args2 = (r, r2, lcoll+l1+l2)
-    uePin = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=args2)[0]
-    uePin2 = integ.dblquad(ueintfunc, 0, np.inf, lambda x: 0, bvrmax, args=args2)[0]
-    print "Unequal pinholes: %e (%e)" %(uePin, uePin*influx)
-    print uePin/uePin2
+    geovrmax = lambda x: 2*r2/(lcoll+l1+l2) * x # geometry
+    bvrmax = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u) # broadening
+    bgvrmax = lambda x: np.minimum(r2/(l1+l2) * x, rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u)) # double limitation of geometry and broadening
 
-    v = np.linspace(0, 200, 201)/u
-    tt = ttime(v, vf, l1, l2, l3, atom.aslow*eta, u)
-    pl.plot(v, rmot/(l1+l2+l3)*v, 'r-', label="Geometric limit", linewidth=3)
-    pl.plot(v, rmot/tt, 'k--', label='Broadening limit', linewidth=3)
-    pl.legend(loc='best')
-    pl.xlabel('v_z')
-    pl.ylabel('v_r')
-    pl.show()
+    args2 = (r, r2, lcoll+l1+l2)
+    uePin = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, geovrmax, args=args2)[0]
+    uePin2 = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=args2)[0]
+    uePin3 = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bgvrmax, args=(r, r, lcoll))[0]
+    print "=> Unequal pinholes: %e (%e)" %(uePin, uePin*influx)
+    print "=> Unequal pinholes + broadening: %e (%e)" %(uePin2, uePin2*influx)
+    print "=> Equal pinholes + geometry + broadening: %e (%e)" %(uePin3, uePin3*influx)
+
+    # # According to the plots, the broadening is calculated correctly
+    # v = np.linspace(0, 500, 201)/u
+    # tt = ttime(v, vf, l1, l2, l3, atom.aslow*eta, u)
+    # pl.plot(v, rmot/(l1+l2+l3)*v, 'r-', label="Geometric limit", linewidth=3)
+    # pl.plot(v, rmot/tt, 'k--', label='Broadening limit', linewidth=3)
+    # pl.legend(loc='best')
+    # pl.xlabel('v_z')
+    # pl.ylabel('v_r')
+    # pl.show()
