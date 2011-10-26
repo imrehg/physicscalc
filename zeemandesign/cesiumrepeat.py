@@ -172,8 +172,11 @@ if __name__ == "__main__":
     v0 = v0new/u
     
     # bvrmax= lambda x: np.minimum(rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta), r2/(l1+l2)*x)
-    bvrmax = lambda x: np.inf
-    # bvrmax = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u) ### broadening is not correct yet
-    uePin = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=(r, r2, lcoll+l1+l2))[0]
+    # bvrmax = lambda x: np.inf
+    bvrmax = lambda x: v0
+    bvrmax = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u) ### broadening is not correct yet
+    args2 = (r, r2, lcoll+l1+l2)
+    uePin = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=args2)[0]
+    uePin2 = integ.dblquad(ueintfunc, 0, np.inf, lambda x: 0, bvrmax, args=args2)[0]
     print "Unequal pinholes: %e (%e)" %(uePin, uePin*influx)
-
+    print uePin/uePin2
