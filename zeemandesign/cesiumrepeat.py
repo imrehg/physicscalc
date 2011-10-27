@@ -66,16 +66,16 @@ def ttime(v, vf, l1, l2, l3, a, u=1):
     nonslowindex = np.nonzero(v <= vf)[0]
     tout = np.zeros(len(v))
     
-    v *= u
-    vf *= u
-    vs = v[slowindex]
-    lB = (vs**2 - vf**2)/(2*a)
+    vx = v*u
+    vfx = vf*u
+    vs = vx[slowindex]
+    lB = (vs**2 - vfx**2)/(2*a)
     t1 = l1/vs
     t2 = (l2 - lB)/vs
-    t3 = (vs - np.sqrt(vs**2 - 2 * a * lB))/(2*a)
-    t4 = l3 /vf
+    t3 = (vs - np.sqrt(vs**2 - 2 * a * lB))/a
+    t4 = l3 /vfx
     tout[slowindex] = t1+t2+t3+t4
-    tout[nonslowindex] = (l1+l2+l3)/v[nonslowindex]
+    tout[nonslowindex] = (l1+l2+l3)/vx[nonslowindex]
     return tout
 
 
