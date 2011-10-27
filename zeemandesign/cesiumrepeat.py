@@ -60,22 +60,28 @@ def ueintfunc(vr, vz, r1, r2, L):
 
 def ttime(v, vf, l1, l2, l3, a, u=1):
     """ Transit time """
-    if type(v) == type(1.0) or type(v) == type(1):
+    if type(v) != 'numpy.array':
         v = np.array([v])
-    slowindex = np.nonzero(v > vf)[0]
-    nonslowindex = np.nonzero(v <= vf)[0]
     tout = np.zeros(len(v))
-    
     vx = v*u
     vfx = vf*u
-    vs = vx[slowindex]
-    lB = (vs**2 - vfx**2)/(2*a)
-    t1 = l1/vs
-    t2 = (l2 - lB)/vs
-    t3 = (vs - np.sqrt(vs**2 - 2 * a * lB))/a
-    t4 = l3 /vfx
-    tout[slowindex] = t1+t2+t3+t4
-    tout[nonslowindex] = (l1+l2+l3)/vx[nonslowindex]
+
+    slowi = np.nonzero(v > vf) # slowed velocity classes
+    if slowi != ():
+        slowindex = slowi[0]
+        vs = vx[slowindex]
+        lB = (vs**2 - vfx**2)/(2*a)
+        t1 = l1/vs
+        t2 = (l2 - lB)/vs
+        t3 = (vs - np.sqrt(vs**2 - 2 * a * lB))/a
+        t4 = l3 /vfx
+        tout[slowindex] = t1+t2+t3+t4
+
+    nonslowi = np.nonzero(v <= vf)  # The non-slowed velocity classes
+    if nonslowi != ():
+        nonslowindex = nonslowi[0]
+        tout[nonslowindex] = (l1+l2+l3)/vx[nonslowindex]
+
     return tout
 
 
