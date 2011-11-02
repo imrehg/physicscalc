@@ -80,6 +80,52 @@ def bideal(atom, z, eta, v0, vf=0, detuning=0):
     z_post = z>sl
     z_mid = ~z_pre & ~z_post
 
+
+    # Calculate field for the three regions
+    b_pre = z[z_pre]*0
+    b_post = z[z_post]*0
+    b_mid = hbar*atom.k/bohrmag*np.sqrt(v0*v0 - 2 * eta * atom.aslow * z[z_mid]) - detu
+
+    # Combine output
+    res = np.append(b_pre, np.append(b_mid, b_post))
+    return res
+
+def bidealLs(atom, z, eta, sl, vf=0, detuning=0):
+    """
+    Calculate the ideal field of the zeeman slower
+
+    atom: slowed atom, use the classes defined here, or something similar
+    z: positions of query [m]
+    v0: max captured velocity [m/s]
+    vf: final velocity (defaults to 0) [m/s]
+    detuning: laser detuning used [MHz], understood as red detuning
+
+    Output:
+    z < 0 : 0
+    z > slowerlength : 0
+    0 <= z <= slowerlength: calculated ideal slowing magnetic field
+    """
+    # Can accept Numpy array, python list and single number, convert everything to numpy
+    if type(z) != type(np.array([1])):
+        if type(z) == type(1):
+            z = np.array([z])
+        elif type(z) == type([1]):
+            z = np.array(z)
+        else:
+            raise TypeError('Input positions should be number, Python list or Numpy array')
+    if not (0 < eta <= 1):
+        raise ValueError('Efficiency has to be between 0 and 1')
+
+    detu = 2*np.pi*detuning*1e6 / uprimehbar
+
+    v0 = np.sqrt(2 * sl * atom.aslow * eta + vf**2)
+
+    # Filter z locations into three relevant regions
+    z_pre = z<0
+    z_post = z>sl
+    z_mid = ~z_pre & ~z_post
+
+
     # Calculate field for the three regions
     b_pre = z[z_pre]*0
     b_post = z[z_post]*0

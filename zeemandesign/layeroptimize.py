@@ -121,7 +121,7 @@ def ssq(val):
 def seglen(segment):
     return segment[1] - segment[0]
 
-def optimize(zideal, fideal, setup, maxtry=100):
+def optimize(zideal, fideal, setup, maxtry=100, printprogress=True):
     # zideal, fideal = bideal2(zl)
     fideal = fideal/fideal[1]
     foriginal = fieldcalc(zideal, setup)/fieldcalc(0, setup)
@@ -137,8 +137,9 @@ def optimize(zideal, fideal, setup, maxtry=100):
     Temp = 0.1
     while n < maxtry:
         if (n+1) % 100 == 0:
-            Temp /= 1.05
-            print n+1, oldval
+            Temp /= 1.035
+            if printprogress:
+               print n+1, oldval
         segment = random.randint(0, nchoice)
         lowseg, highseg = setup['segments'][segment], setup['segments'][segment+1]
         decrease = random.randint(0, 2)

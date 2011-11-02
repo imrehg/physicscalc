@@ -5,15 +5,24 @@ import wires
 import zeemanslower as zs
 from layeroptimize import *
 
-def dowire(wire, n1, n2, series=0, maxtry=100):
-    R = 0.0383
-    eta, v0, vf, detu = 0.7, 365, 20, 260
+def dowire(inparam):
+    params, wire, nlayer, simparam = inparam
+    R = params['R']
+    eta = params['eta']
+    v0 = params['v0']
+    vf = params['vf']
+    sl = params['Ls']
+    detu = params['detu']
+    atom = params['atom']
+    n1, n2 = nlayer, nlayer
+    maxtry = simparam['maxtry']
+    series = simparam['series']
+    printprogress = simparam['printprogress']
+
     # The field that we want to match
     nz = 61
-    atom = zs.Rb85()
-    sl = zs.slowerlength(atom.aslow, eta, v0, vf)
     z = np.append([-5.5*R], np.append(np.linspace(0, sl, nz-2), sl+5.5*R))
-    bfield = zs.bideal(atom, z, eta, v0, vf, detu)
+    bfield = zs.bidealLs(atom, z, eta, sl, vf, detu)
 
     # # Our coil
     nloops, loops, layer, csign, segments = createStruct((z[0],z[-1]), wire[0], (n1, n2))
@@ -25,8 +34,8 @@ def dowire(wire, n1, n2, series=0, maxtry=100):
              'R': R,
              'd': wire[0],
              }
-
-    newsetup = optimize(z, bfield, setup, maxtry=maxtry)
+    print("Optimize: %s, %d layer" %(wire[2], nlayer))
+    newsetup = optimize(z, bfield, setup, maxtry=maxtry, printprogress=printprogress)
     # newsetup = setup
     # pl.plot(z, bfield, 'x')
     ze = np.linspace(z[0], z[-1], 201)
@@ -49,17 +58,52 @@ def dowire(wire, n1, n2, series=0, maxtry=100):
                   'setup': newsetup
                   }
 
-    savefile = "%d_%s" %(series, wire[2])
+    savefile = "%d_%s_%d" %(series, wire[2], nlayer)
     np.savez('%s' %(savefile), simulation=simulation)
     pl.savefig('%s.png' %(savefile))
-    # pl.show()
     
 if __name__ == "__main__":
-    maxtry = 20000
-    for wire in wires.AWG[0::1]:
-        for n in range(5, 11):
-            starts = n
-            print wire[2]
-            dowire(wire, n, n, starts, maxtry)
+
+    import multiprocessing as processing
+    import itertools
+
+    # design parameters
+    atom = zs.Rb85()
+    R = 0.03 / 2 # larger diameter slower tube
+    eta = 0.5 # efficiency
+    Ls = 0.6 # set slower length
+    vf = 30
+    detu = 190
+    # Sim parameters
+    maxtry = 30000
+
+    ## Derived parameters
+    v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
+    print("Max capture velocity: %g" %(v0))
+
+    input_params = {'R': R,
+                    'eta': eta,
+                    'Ls': Ls,
+                    'v0': v0,
+                    'vf': vf,
+                    'detu': detu,
+                    'atom': atom
+                    }
+    simparam = {'maxtry': maxtry,
+                'series': 2,
+                'printprogress': False,
+                }
+
+    maxlayers = range(5, 11)
+    TASKS = [(input_params, x[0], x[1], simparam) for x in itertools.product(wires.AWG, maxlayers)]
+
+    NUMBER_OF_PROCESSES = processing.cpu_count()
+    pool = processing.Pool(processes=NUMBER_OF_PROCESSES)
+
+    try:
+        out = pool.map_async(dowire, TASKS).get(999999)
+    except KeyboardInterrupt:
+        pool.terminate()
+        sys.exit(0)
 
     pl.show()
