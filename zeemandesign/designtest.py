@@ -14,7 +14,7 @@ import cesiumrepeat as cs
 kB = 1.3806488e-23
 ##
 
-def flux(params):
+def relflux(params):
     atom = params['atom']
     T = params['T']
     eta = params['eta']
@@ -39,6 +39,10 @@ def flux(params):
 
     return (spinhole, dpinhole, GLim, DLim)
 
+def RbPv(T):
+    return 10**(15.88253 - 4529.635 / T + 0.00058663 * T - 2.991381 * np.log10(T))
+
+
 if __name__ == "__main__":
     #### All parameters
     atom = zs.Rb85()
@@ -48,10 +52,11 @@ if __name__ == "__main__":
     l3 = 200e-3
     rmot = (25.4e-3)/2
     vf = 30
+    r = 1e-3 # pinhole radius
     #### No parameters after this
+    P = RbPv(T) # vapor pressure
 
-
-    l2list = np.linspace(0.1, 1.2, 31)
+    l2list = np.linspace(0.1, 1.2, 41)
 
     spin, dpin, gl, dl = [], [], [], []
     for l2 in l2list:
@@ -63,20 +68,23 @@ if __name__ == "__main__":
                   'lengths': (l1, l2, l3),
                   }
 
-        spinhole, dpinhole, GLim, DLim = flux(params)
+        spinhole, dpinhole, GLim, DLim = relflux(params)
         spin += [spinhole]
         dpin += [dpin]
         gl += [GLim]
         dl += [DLim]
-        # print "\nNo slowing", "="*10
-        # print("Single / Double pinhole / Ratio: %g / %g / %g" %(spinhole, dpinhole, spinhole/dpinhole))
-        # print "\nSlowing", "="*10
-        # print("No divergence / Divergence: %g / %g " %(GLim, DLim))
 
+    gla = np.array(gl)
+    dla = np.array(dl)
+
+    # # Need normalization of gla, dla before this can be used
+    # baseflux = flux.flux(T, atom.m, P)
+    # influx = r**2 * np.pi * baseflux
+    # print baseflux, influx
 
     fig = pl.figure(num=1, figsize=(11.69, 8.27))
-    pl.plot(l2list, gl, 'k--', label='no divergence', linewidth=3)
-    pl.plot(l2list, dl, 'r-', label='divergence due to slowing', linewidth=3)
+    pl.plot(l2list, gla, 'k--', label='no divergence', linewidth=3)
+    pl.plot(l2list, dla, 'r-', label='divergence due to slowing', linewidth=3)
     pl.xlabel('Slower length [m]', fontsize=15)
     pl.ylabel('Flux [AU]', fontsize=15)
     pl.legend(loc='best')
