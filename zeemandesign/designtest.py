@@ -14,6 +14,30 @@ import cesiumrepeat as cs
 kB = 1.3806488e-23
 ##
 
+def flux(params):
+    atom = params['atom']
+    T = params['T']
+    eta = params['eta']
+    l1, l2, l3 = params['lengths'] # tuple
+    rmot = params['eta']
+    vf = params['vf']
+
+    v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2) # Maximum capture velocity
+    u = np.sqrt(2 * kB * T / atom.m) # Most probable velocity
+    # Normalize
+    v0 = v0new /u
+    vf /= u
+
+    collimator = (1, 2*(l1+l2+l3)/rmot)
+    Dvrmax = lambda x: rmot/cs.ttime(x, vf, l1, l2, l3, atom.aslow*eta, u)/u # Divergence limit
+    Gvrmax = lambda x: rmot/(l1+l2+l3)*x # Geometric limit
+
+    spinhole = (2/collimator[1])**2/(1+(2/collimator[1])**2)
+    dpinhole = integ.dblquad(cs.intfunc, 0, np.inf, lambda x: 0, Gvrmax, args=collimator)[0]
+    GLim = integ.dblquad(cs.intfunc, 0, v0, lambda x: 0, Gvrmax, args=collimator)[0]
+    DLim = integ.dblquad(cs.intfunc, 0, v0, lambda x: 0, Dvrmax, args=collimator)[0]
+
+    return (spinhole, dpinhole, GLim, DLim)
 
 if __name__ == "__main__":
     #### All parameters
@@ -26,25 +50,36 @@ if __name__ == "__main__":
     vf = 30
     #### No parameters after this
 
-    l2 = 0.6
 
-    v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
-    print("Maximum capture velocity: %g" %(v0new))
-    u = np.sqrt(2 * kB * T / atom.m)
-    print "Most probable velocity: ", u
-    v0 = v0new /u
-    vf /= u
+    l2list = np.linspace(0.1, 1.2, 31)
 
-    collimator = (1, 2*(l1+l2+l3)/rmot)
-    Dvrmax = lambda x: rmot/cs.ttime(x, vf, l1, l2, l3, atom.aslow*eta, u)/u # Divergence limit
-    Gvrmax = lambda x: rmot/(l1+l2+l3)*x # Geometric limit
+    spin, dpin, gl, dl = [], [], [], []
+    for l2 in l2list:
+        params = {'atom': atom,
+                  'T': T,
+                  'eta': eta,
+                  'rmot': rmot,
+                  'vf': vf,
+                  'lengths': (l1, l2, l3),
+                  }
 
-    print "\nNo slowing", "="*10
-    spinhole = (2/collimator[1])**2/(1+(2/collimator[1])**2)
-    dpinhole = integ.dblquad(cs.intfunc, 0, np.inf, lambda x: 0, Gvrmax, args=collimator)[0]
-    print("Single / Double pinhole / Ratio: %g / %g / %g" %(spinhole, dpinhole, spinhole/dpinhole))
+        spinhole, dpinhole, GLim, DLim = flux(params)
+        spin += [spinhole]
+        dpin += [dpin]
+        gl += [GLim]
+        dl += [DLim]
+        # print "\nNo slowing", "="*10
+        # print("Single / Double pinhole / Ratio: %g / %g / %g" %(spinhole, dpinhole, spinhole/dpinhole))
+        # print "\nSlowing", "="*10
+        # print("No divergence / Divergence: %g / %g " %(GLim, DLim))
 
-    print "\nSlowing", "="*10
-    GLim = integ.dblquad(cs.intfunc, 0, v0, lambda x: 0, Gvrmax, args=collimator)[0]
-    DLim = integ.dblquad(cs.intfunc, 0, v0, lambda x: 0, Dvrmax, args=collimator)[0]
-    print("No divergence / Divergence: %g / %g " %(GLim, DLim))
+
+    fig = pl.figure(num=1, figsize=(11.69, 8.27))
+    pl.plot(l2list, gl, 'k--', label='no divergence', linewidth=3)
+    pl.plot(l2list, dl, 'r-', label='divergence due to slowing', linewidth=3)
+    pl.xlabel('Slower length [m]', fontsize=15)
+    pl.ylabel('Flux [AU]', fontsize=15)
+    pl.legend(loc='best')
+    pl.savefig('designtest.png')
+    pl.savefig('designtest.pdf')
+    pl.show()
