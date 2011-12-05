@@ -73,7 +73,8 @@ if __name__ == "__main__":
     eta = 0.5 # efficiency
     Ls = 0.6 # set slower length
     vf = 30
-    detu = 190
+    detu = 160
+    series = 3
     # Sim parameters
     maxtry = 30000
 
@@ -90,7 +91,7 @@ if __name__ == "__main__":
                     'atom': atom
                     }
     simparam = {'maxtry': maxtry,
-                'series': 2,
+                'series': series,
                 'printprogress': False,
                 }
 
