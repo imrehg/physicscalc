@@ -30,6 +30,14 @@ class Cs133:
         self.m = 132.905451 * mU  # Cs133
         self.aslow = hbar*self.k*self.G/(2*self.m)
 
+class K41:
+    """ Potassium-41 atom parameters """
+    def __init__(self):
+        self.G = 37.919e6 # 2pi x 6.035MHz
+        self.k = 13042.903375 * 2 * np.pi # 1/m (D2 line)
+        self.m = 40.96182576 * mU  # K41
+        self.aslow = hbar*self.k*self.G/(2*self.m)
+
 #### Helper functions
 
 def slowerlength(aslow, eta, v0, vf = 0):
