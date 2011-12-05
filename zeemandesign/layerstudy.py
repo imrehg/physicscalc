@@ -67,14 +67,31 @@ if __name__ == "__main__":
     import multiprocessing as processing
     import itertools
 
+    # # design parameters
+    # atom = zs.Rb85()
+    # R = 0.03 / 2 # larger diameter slower tube
+    # eta = 0.5 # efficiency
+    # Ls = 0.6 # set slower length
+    # vf = 30
+    # detu = 160
+    # series = 3
+    # ## Derived parameters
+    # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
+    # print("Max capture velocity: %g" %(v0))
+
     # design parameters
-    atom = zs.Rb85()
-    R = 0.03 / 2 # larger diameter slower tube
-    eta = 0.5 # efficiency
+    atom = zs.K41()
+    R = 2.75 * 2.54e-2 / 2 # 2.75" slower tube
+    eta = 0.7 # efficiency
     Ls = 0.6 # set slower length
     vf = 30
-    detu = 160
-    series = 3
+    v0 = 476
+    detu = 328
+    series = 5
+    ## Derived parameters
+    Ls = zs.slowerlength(atom.aslow, eta, v0, vf)
+    print("Slower length: %g" %(Ls))
+
     # Sim parameters
     maxtry = 30000
 
