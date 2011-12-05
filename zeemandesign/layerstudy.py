@@ -95,8 +95,9 @@ if __name__ == "__main__":
                 'printprogress': False,
                 }
 
+    wirelist = wires.AWG
     maxlayers = range(5, 11)
-    TASKS = [(input_params, x[0], x[1], simparam) for x in itertools.product(wires.AWG, maxlayers)]
+    TASKS = [(input_params, x[0], x[1], simparam) for x in itertools.product(wirelist, maxlayers)]
 
     NUMBER_OF_PROCESSES = processing.cpu_count()
     pool = processing.Pool(processes=NUMBER_OF_PROCESSES)
