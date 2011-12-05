@@ -6,18 +6,27 @@ import zeemanslower as zs
 from layeroptimize import *
 
 # Whether or not separate the images
-separate = True
+separate = False
+
+# # This the testing data to get the B-field scaling
+# series = 3
+# filename = "%d_AWG1_5.npz" %(series)
+# sim = np.load(filename)['simulation'][()]
+# eta, v0, vf, detu = sim['eta'], sim['v0'], sim['vf'], sim['detu']
+# atom = zs.Rb85()
+# sl = zs.slowerlength(atom.aslow, eta, v0, vf)
+# z = np.array([0])
+# bfield = zs.bideal(atom, z, eta, v0, vf, detu)
 
 # This the testing data to get the B-field scaling
-series = 3
-filename = "%d_AWG1_5.npz" %(series)
+series = 5
+filename = "%d_AWG12_5.npz" %(series)
 sim = np.load(filename)['simulation'][()]
 eta, v0, vf, detu = sim['eta'], sim['v0'], sim['vf'], sim['detu']
-atom = zs.Rb85()
+atom = zs.K41()
 sl = zs.slowerlength(atom.aslow, eta, v0, vf)
 z = np.array([0])
 bfield = zs.bideal(atom, z, eta, v0, vf, detu)
-
 
 
 def getdata(filename):
@@ -123,10 +132,9 @@ for k, maxwind in enumerate(range(5, 11)):
         fig.text(0.5, 0.95, 'Slower length = %g m, Max B field = %g G' %(sl, bfield*1e4), horizontalalignment='center')
     else:
         pl.subplot(325)
-    pl.plot(csize, weights, colours[k]+'o-', label='W=%d' %maxwind)
-    pl.xlabel('AWG number')
-    pl.ylabel('Weight (kg)')
-    pl.xlim([0, 16])
+    pl.plot(powers, weights, colours[k]+'o-')
+    pl.xlabel('Power (W)')
+    pl.ylabel('Total weight (kg)')
 
     if separate:
         fig = pl.figure(num=6, figsize=(11.69, 8.27))
@@ -140,9 +148,10 @@ for k, maxwind in enumerate(range(5, 11)):
     if separate:
         pl.figure(num=7, figsize=(11.69, 8.27))
         fig.text(0.5, 0.95, 'Slower length = %g m, Max B field = %g G' %(sl, bfield*1e4), horizontalalignment='center')
-        pl.plot(powers, weights, colours[k]+'o-')
-        pl.xlabel('Power (W)')
-        pl.ylabel('Total weight (kg)')
+        pl.plot(csize, weights, colours[k]+'o-', label='W=%d' %maxwind)
+        pl.xlabel('AWG number')
+        pl.ylabel('Weight (kg)')
+        pl.xlim([0, 16])
 
 # Save figures
 if separate:
