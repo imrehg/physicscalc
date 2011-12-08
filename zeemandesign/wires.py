@@ -56,6 +56,27 @@ AWG12 = (2.053e-3, 5.211e-3, "AWG12")
 AWG13 = (1.828e-3, 6.571e-3, "AWG13")
 AWG14 = (1.628e-3, 8.286e-3, "AWG14")
 AWG15 = (1.450e-3, 10.45e-3, "AWG15")
+AWG16 = (1.291e-3, 13.17e-3, "AWG16")
+AWG17 = (1.150e-3, 16.61e-3, "AWG17")
+AWG18 = (1.024e-3, 20.95e-3, "AWG18")
 
 # Wire collection
-AWG = [AWG1, AWG2, AWG3, AWG4, AWG5, AWG6, AWG7, AWG8, AWG9, AWG10, AWG11, AWG12, AWG13, AWG14, AWG15]
+AWG = [AWG1,
+       AWG2,
+       AWG3,
+       AWG4,
+       AWG5,
+       AWG6,
+       AWG7,
+       AWG8,
+       AWG9,
+       AWG10,
+       AWG11,
+       AWG12,
+       AWG13,
+       AWG14,
+       AWG15,
+       AWG16,
+       AWG17,
+       AWG18,
+       ]
