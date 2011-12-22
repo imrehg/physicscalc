@@ -22,6 +22,14 @@ class Rb85:
         self.m = 85 * mU  # Rb85
         self.aslow = hbar*self.k*self.G/(2*self.m)
 
+class Rb87:
+    """ Rubidium-87 atom parameters """
+    def __init__(self):
+        self.G = 38.117e6 # 2pi x 6.07MHz
+        self.k = 1281654.9389 * 2 * np.pi # 1/m
+        self.m = 86.909180 * mU  # Rb85
+        self.aslow = hbar*self.k*self.G/(2*self.m)
+
 class Cs133:
     """ Cesium-133 atom parameters """
     def __init__(self):
