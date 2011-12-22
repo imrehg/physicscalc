@@ -42,7 +42,7 @@ class K41:
     """ Potassium-41 atom parameters """
     def __init__(self):
         self.G = 37.919e6 # 2pi x 6.035MHz
-        self.k = 13042.903375 * 2 * np.pi # 1/m (D2 line)
+        self.k = 1304290.3375 * 2 * np.pi # 1/m (D2 line)
         self.m = 40.96182576 * mU  # K41
         self.aslow = hbar*self.k*self.G/(2*self.m)
 
