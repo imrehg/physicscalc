@@ -36,7 +36,7 @@ if __name__ == "__main__":
         if np.diff(segments[i]) != 0:
             print "%7.2f mm to %7.2f mm: %3d turns / %3d layers" %((looppos[segments[i][0]]-wire[0]/2)*1000, (looppos[segments[i][1]-1]+wire[0]/2)*1000, np.diff(segments[i]), layer[i])
     sta = looppos[segments[1][0]]-wire[0]/2
-    stb = looppos[segments[-2][1]]+wire[0]/2
+    stb = looppos[segments[-2][1]-1]+wire[0]/2  # The upper boundary is the start of the next layer, need -1
     efflen = zs.slowerlength(atom.aslow, eta, v0, vf) * 1000
     coillen = (stb - sta)*1000
     print "Effective length: %.1f mm" %(efflen)
