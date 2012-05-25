@@ -82,6 +82,7 @@ for i, s in enumerate(series):
     pl.xlabel('Slower weight [kg]', fontsize=15)
     pl.ylabel('Power [W]', fontsize=15)
 pl.savefig("%s.png" %sumname)
+pl.savefig("%s.pdf" %sumname)
 
 # Save data
 savecsv("%s_length.csv" %(sumname), sizes, ["Layers\Length(cm)"]+["Series %s" %s for s in series], lnums)
