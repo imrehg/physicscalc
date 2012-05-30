@@ -48,7 +48,9 @@ if __name__ == "__main__":
     atom = zs.Rb85()
     T = 80 + 273 # Kelvin
     eta = 0.5
-    l1 = 0
+    # l1 = 250e-3
+    # l3 = 400e-3
+    l1 = 200e-3
     l3 = 200e-3
     rmot = (25.4e-3)/2
     vf = 30
@@ -90,4 +92,18 @@ if __name__ == "__main__":
     pl.legend(loc='best')
     pl.savefig('designtest.png')
     pl.savefig('designtest.pdf')
+
+    # Aspect ratio calculation
+    lll = l1 + l3 + l2list
+    w = rmot / (lll) / 4
+    w = np.array(w)
+    pl.figure()
+    pl.plot(l2list, w*w/(1+w*w)/4)
+    pl.ylabel('flux after pinhole')
+
+    pl.figure()
+    pl.plot(l2list, 2/w)
+    pl.ylabel('aspect ratio')
+    #####
+
     pl.show()
