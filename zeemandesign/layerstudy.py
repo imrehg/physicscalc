@@ -1,5 +1,6 @@
 import numpy as np
 import pylab as pl
+import sys
 
 import wires
 import zeemanslower as zs
@@ -79,25 +80,58 @@ if __name__ == "__main__":
     # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
     # print("Max capture velocity: %g" %(v0))
 
+    # # design parameters
+    # atom = zs.Rb87()
+    # R = 0.020 / 2
+    # eta = 0.5 # efficiency
+    # Ls = 0.6 # set slower length
+    # # Ls = 0.595 # set slower length
+    # vf = 30
+    # detu = 160
+    # series = 14
+    # ## Derived parameters
+    # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
+    # print("Max capture velocity: %g" %(v0))
+
+    # # design parameters
+    # atom = zs.K41()
+    # # R = 2.75 * 2.54e-2 / 2 # 2.75" slower tube
+    # R = 6e-3
+    # eta = 0.7 # efficiency
+    # Ls = 0.6 # set slower length
+    # vf = 30
+    # v0 = 395
+    # detu = 280
+    # series = 9
+    # # Ls = 0.6 - 2*0.07
+    # ## Derived parameters
+    # Ls = zs.slowerlength(atom.aslow, eta, v0, vf)
+    # print("Slower length: %g" %(Ls))
+    # # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
+    # # print("Max capture velocity: %g" %(v0))
+
     # design parameters
-    atom = zs.K41()
-    R = 2.75 * 2.54e-2 / 2 # 2.75" slower tube
-    eta = 0.7 # efficiency
-    Ls = 0.6 # set slower length
+    atom = zs.Rb87()
+    R = 0.019 / 2
+    eta = 0.5 # efficiency
+    Ls = 0.59 # set slower length
+    # Ls = 0.584 # set slower length
+    # Ls = 0.595 # set slower length
     vf = 30
-    v0 = 476
-    detu = 328
-    series = 5
+    detu = 175
+    series = 19
     ## Derived parameters
-    Ls = zs.slowerlength(atom.aslow, eta, v0, vf)
-    print("Slower length: %g" %(Ls))
+    v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
+    print("Max capture velocity: %g" %(v0))
+
+    # sys.exit(0)
 
     # Sim parameters
     maxtry = 30000
 
-    ## Derived parameters
-    v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
-    print("Max capture velocity: %g" %(v0))
+    # ## Derived parameters
+    # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
+    # print("Max capture velocity: %g" %(v0))
 
     input_params = {'R': R,
                     'eta': eta,
@@ -112,8 +146,18 @@ if __name__ == "__main__":
                 'printprogress': False,
                 }
 
-    wirelist = wires.AWG
-    maxlayers = range(5, 11)
+    # wirelist = wires.AWG
+    # wirelist = wirelist[0:15]
+
+    # Use enamel coated AWG12 wire
+    wirelist = [(2.1e-3, 5.211e-3, "AWG12Coat")]
+
+
+    # wirelist = wirelist[17:18]
+    # print wirelist
+    # sys.exit(0)
+    # maxlayers = range(5, 11)
+    maxlayers = range(5, 16)
     TASKS = [(input_params, x[0], x[1], simparam) for x in itertools.product(wirelist, maxlayers)]
 
     NUMBER_OF_PROCESSES = processing.cpu_count()
@@ -125,4 +169,4 @@ if __name__ == "__main__":
         pool.terminate()
         sys.exit(0)
 
-    pl.show()
+    # pl.show()
