@@ -7,26 +7,27 @@ from layeroptimize import *
 
 # Whether or not separate the images
 separate = False
-
-# # This the testing data to get the B-field scaling
-# series = 3
-# filename = "%d_AWG1_5.npz" %(series)
-# sim = np.load(filename)['simulation'][()]
-# eta, v0, vf, detu = sim['eta'], sim['v0'], sim['vf'], sim['detu']
-# atom = zs.Rb85()
-# sl = zs.slowerlength(atom.aslow, eta, v0, vf)
-# z = np.array([0])
-# bfield = zs.bideal(atom, z, eta, v0, vf, detu)
+prefix = "test"
 
 # This the testing data to get the B-field scaling
-series = 5
-filename = "%d_AWG12_5.npz" %(series)
+series = 12
+filename = "%d_AWG1_5.npz" %(series)
 sim = np.load(filename)['simulation'][()]
-eta, v0, vf, detu = sim['eta'], sim['v0'], sim['vf'], sim['detu']
-atom = zs.K41()
+eta, v0, vf, detu, R = sim['eta'], sim['v0'], sim['vf'], sim['detu'], sim['R']
+atom = zs.Rb87()
 sl = zs.slowerlength(atom.aslow, eta, v0, vf)
 z = np.array([0])
 bfield = zs.bideal(atom, z, eta, v0, vf, detu)
+
+# # This the testing data to get the B-field scaling
+# series = 9
+# filename = "%d_AWG18_5.npz" %(series)
+# sim = np.load(filename)['simulation'][()]
+# eta, v0, vf, detu = sim['eta'], sim['v0'], sim['vf'], sim['detu']
+# atom = zs.K41()
+# sl = zs.slowerlength(atom.aslow, eta, v0, vf)
+# z = np.array([0])
+# bfield = zs.bideal(atom, z, eta, v0, vf, detu)
 
 
 def getdata(filename):
@@ -61,8 +62,8 @@ def getdata(filename):
 
 weightUnit = 8881.5  # Copper, kg/m^3
 
-colours = ['b', 'g', 'r', 'y', 'k', 'm']
-for k, maxwind in enumerate(range(5, 11)):
+colours = ['b', 'g', 'r', 'y', 'k', 'm', 'b', 'g', 'r', 'y', 'k', 'm']
+for k, maxwind in enumerate(range(5, 16)):
     powers = []
     currents = []
     lengths = []
@@ -71,7 +72,11 @@ for k, maxwind in enumerate(range(5, 11)):
     volumes = []
     weights = []
     currentdense = []
-    csize = range(1, 16)
+    # csize = range(1, 16)
+    minsize = 1
+    maxsize = 15
+    # maxsize = 18
+    csize = range(minsize, maxsize+1)
     for i in csize:
         filename = "%d_AWG%d_%d.npz" %(series, i, maxwind)
         current, totallen, power, resistance, reducedarea, volume, radius = getdata(filename)
@@ -86,15 +91,15 @@ for k, maxwind in enumerate(range(5, 11)):
 
     if separate:
         fig = pl.figure(num=1, figsize=(11.69, 8.27))
-        fig.text(0.5, 0.95, 'Slower length = %g m, Max B field = %g G' %(sl, bfield*1e4), horizontalalignment='center')
+        fig.text(0.5, 0.95, 'Slower length = %g m, Max B field = %g G, detuning = %.1f MHz' %(sl, bfield*1e4, detu), horizontalalignment='center')
     else:
         fig = pl.figure(num=1, figsize=(8.27, 11.69))
-        fig.text(0.5, 0.95, 'Slower length = %g m, Max B field = %g G' %(sl, bfield*1e4), horizontalalignment='center')
+        fig.text(0.5, 0.95, 'Slower length = %g m, Max B field = %g G, detuning = %.1f MHz, D=%gmm' %(sl, bfield*1e4, detu, 2*R*1000), horizontalalignment='center')
         pl.subplot(321)
     pl.plot(csize, powers, colours[k]+'o-', label='W=%d' %maxwind)
     pl.xlabel('AWG number')
     pl.ylabel('Total power (W)')
-    pl.xlim([0, 16])
+    pl.xlim([minsize-1, maxsize+1])
 
     if separate:
         fig = pl.figure(num=2, figsize=(11.69, 8.27))
@@ -104,7 +109,7 @@ for k, maxwind in enumerate(range(5, 11)):
     pl.plot(csize, currents, colours[k]+'o-', label='W=%d' %maxwind)
     pl.xlabel('AWG number')
     pl.ylabel('Total current (I)')
-    pl.xlim([0, 16])
+    pl.xlim([minsize-1, maxsize+1])
 
     if separate:
         fig = pl.figure(num=3, figsize=(11.69, 8.27))
@@ -114,7 +119,7 @@ for k, maxwind in enumerate(range(5, 11)):
     pl.plot(csize, lengths, colours[k]+'o-', label='W=%d' %maxwind)
     pl.xlabel('AWG number')
     pl.ylabel('Total wire length (m)')
-    pl.xlim([0, 16])
+    pl.xlim([minsize-1, maxsize+1])
 
     if separate:
         fig = pl.figure(num=4, figsize=(11.69, 8.27))
@@ -124,8 +129,8 @@ for k, maxwind in enumerate(range(5, 11)):
     pl.plot(csize, resistances, colours[k]+'o-', label='W=%d' %maxwind)
     pl.xlabel('AWG number')
     pl.ylabel('Total resistance (Ohm)')
-    pl.legend(loc='best')
-    pl.xlim([0, 16])
+    pl.legend(loc='best', numpoints=1, prop={'size': 10})
+    pl.xlim([minsize-1, maxsize+1])
 
     if separate:
         fig = pl.figure(num=5, figsize=(11.69, 8.27))
@@ -151,16 +156,16 @@ for k, maxwind in enumerate(range(5, 11)):
         pl.plot(csize, weights, colours[k]+'o-', label='W=%d' %maxwind)
         pl.xlabel('AWG number')
         pl.ylabel('Weight (kg)')
-        pl.xlim([0, 16])
+        pl.xlim([minsize-1, maxsize+1])
 
 # Save figures
 if separate:
     nfig = 7
     for i in range(1, nfig+1):
         pl.figure(i)
-        pl.savefig('plotstudy_%d_%d.png' %(series, i))
-        pl.savefig('plotstudy_%d_%d.pdf' %(series, i))
+        pl.savefig('plotstudy_%s%d_%d.png' %(prefix, series, i))
+        pl.savefig('plotstudy_%s%d_%d.pdf' %(prefix, series, i))
 else:
-    pl.savefig('plotstudy_%d.png' %(series))
-    pl.savefig('plotstudy_%d.pdf' %(series))
+    pl.savefig('plotstudy_%s%d.png' %(prefix, series))
+    pl.savefig('plotstudy_%s%d.pdf' %(prefix, series))
 pl.show()
