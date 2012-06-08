@@ -45,6 +45,8 @@ def getdata(filename):
 
 # getdata("10_AWG7.npz")
 
+separate = False
+
 colours = ['b', 'g', 'r', 'y', 'k', 'm']
 for k, maxwind in enumerate(range(5, 11)):
     powers = []
@@ -66,8 +68,11 @@ for k, maxwind in enumerate(range(5, 11)):
     filename = "%d_hollow.npz" %(maxwind)
     hcurrent, hlength, hpower, hresistance, hreducedarea = getdata(filename)
 
-    pl.figure(num=1, figsize=(11.69, 8.27))
-    pl.subplot(221)
+    if separate:
+        pl.figure(num=1, figsize=(11.69, 8.27))
+    else:
+        pl.figure(num=1, figsize=(11.69, 8.27))
+        pl.subplot(221)
     pl.plot(csize, powers, colours[k]+'o-', label='W=%d' %maxwind)
     pl.plot(11, hpower, colours[k]+'o')
     pl.xlabel('AWG number')
@@ -75,7 +80,10 @@ for k, maxwind in enumerate(range(5, 11)):
     pl.xticks( csize[0::]+[11],  (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'hollow') )
     pl.xlim([0, 12])
 
-    pl.subplot(222)
+    if separate:
+        pl.figure(num=2, figsize=(11.69, 8.27))
+    else:
+        pl.subplot(222)
     pl.plot(csize, currents, colours[k]+'o-', label='W=%d' %maxwind)
     pl.plot(11, hcurrent, colours[k]+'o')
     pl.xlabel('AWG number')
