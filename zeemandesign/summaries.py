@@ -13,6 +13,8 @@ sumname = "summary01"
 series = [15,
           16,
           17,
+          18,
+          19
           ]
 lnums = range(5, 16)
 
@@ -38,7 +40,7 @@ sizes = np.zeros((nnums, nseries))
 currents = np.zeros((nnums, nseries))
 powers = np.zeros((nnums, nseries))
 weights = np.zeros((nnums, nseries))
-deco = ['ko-', 'ro--', 'bo:']
+deco = ['ko-', 'ro--', 'bo:', 'yo-', 'go--']
 pl.figure(figsize=(fw, fh))
 for i, s in enumerate(series):
     for j, l in enumerate(lnums):
