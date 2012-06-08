@@ -3,6 +3,7 @@ import pylab as pl
 
 import layeroptimize as lo
 import zeemanslower as zs
+import sys
 
 fw, fh = (11.69, 8.27)
 
@@ -12,8 +13,12 @@ if __name__ == "__main__":
     # filename = "9_AWG18_15.npz"
     # atom = zs.K41()
 
-    filename = "3_AWG10_8.npz"
-    atom = zs.Rb85()
+    # filename = "3_AWG10_8.npz"
+    # atom = zs.Rb85()
+    # filename = "13_AWG12_10.npz"
+    # filename = "14_AWG12Coat_10.npz"
+    filename = sys.argv[1]
+    atom = zs.Rb87()
 
     sim = np.load(filename)['simulation'][()]
     wire = sim['wire']
