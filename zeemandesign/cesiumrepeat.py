@@ -60,7 +60,9 @@ def ueintfunc(vr, vz, r1, r2, L):
 
 def ttime(v, vf, l1, l2, l3, a, u=1):
     """ Transit time """
-    if type(v) != 'numpy.array':
+    try:
+        len(v)
+    except TypeError:
         v = np.array([v])
     tout = np.zeros(len(v))
     vx = v*u
@@ -174,10 +176,10 @@ if __name__ == "__main__":
 
     #### Experimental:
     print "\nExperiment", "="*10
-    eta = 0.82
-    vf = 50
-    # eta = 0.5
-    # vf = 42
+    # eta = 0.82
+    # vf = 50
+    eta = 0.5
+    vf = 42
     v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
     vf /= u
     v0 = v0new/u
@@ -195,33 +197,55 @@ if __name__ == "__main__":
     print "=> Unequal pinholes + broadening: %e (%e)" %(uePin2, uePin2*influx)
     print "=> Equal pinholes + geometry + broadening: %e (%e)" %(uePin3, uePin3*influx)
 
+
+    # ta = (v0*u - np.sqrt((v0*u)**2 - 2 * atom.aslow * eta * l2))/(atom.aslow*eta)
+    # tb = (v0-vf)*u/(atom.aslow*eta)
+    # print v0*u, vf*u
+    # print ta, tb
+    # print v0*u*ta - 0.5*atom.aslow*eta*ta**2
+    # print v0*u*tb - 0.5*atom.aslow*eta*tb**2
+    # t = np.linspace(0, tb, 101)
+    # # pl.plot(t, (v0*u - atom.aslow * eta * t)/(vf*u))
+    # # pl.plot(ta, (v0*u - atom.aslow * eta * ta)/(vf*u), 'ko')
+
+    # pl.figure()
     # # According to the plots, the broadening is calculated correctly
-    # v = np.linspace(0, 500, 201)/u
-    # tt = ttime(v, vf, l1, l2, l3, atom.aslow*eta, u)
-    # pl.plot(v, rmot/(l1+l2+l3)*v, 'r-', label="Geometric limit", linewidth=3)
-    # pl.plot(v, rmot/tt, 'k--', label='Broadening limit', linewidth=3)
+    # print u
+    # v = np.linspace(vf*u*0.9, v0*u, 201)/u
+    # print v[-1]
+    tt = ttime(100/u, vf, l1, l2, l3, atom.aslow*eta, u)
+    print tt
+    # print tt[-1]
+    # print v[-1]
+    # ttx = ttimex(v, v0, vf, l1, l2, l3, atom.aslow*eta, u)
+    # print v[-1]
+    # # pl.plot(v, rmot/(l1+l2+l3)*v, 'r-', label="Geometric limit", linewidth=3)
+    # pl.plot(v, ttx, 'r-', label='Dispersion X', linewidth=3)
+    # pl.plot(v, tt, 'k--', label='Dispersion', linewidth=3)
+    # pl.plot([vf, vf], [0, max(tt)], 'k-')
     # pl.legend(loc='best')
     # pl.xlabel('v_z')
     # pl.ylabel('v_r')
     # pl.show()
 
-    eta = 0.82
-    vf = 50
-    vf /= u
+    # eta = 0.82
+    # vf = 50
+    # vf /= u
 
-    sl = np.linspace(0.2, 1.2, 10)
-    cfraqb = np.array([])
-    for l2 in sl:
-        print "Slower length: ", l2
-        v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
+    # sl = np.linspace(0.2, 1.2, 10)
+    # cfraqb = np.array([])
+    # for l2 in sl:
+    #     print "Slower length: ", l2
+    #     v0new = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
 
-        v0 = v0new/u
+    #     v0 = v0new/u
 
-        args2 = (r, r2, lcoll+l1+l2)
-        bvrmax = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u) # broadening
+    #     args2 = (r, r2, lcoll+l1+l2)
+    #     bvrmax = lambda x: rmot/ttime(x, vf, l1, l2, l3, atom.aslow*eta, u) # broadening
 
-        uePin2 = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=args2)[0]
-        cfraqb = np.append(cfraqb, uePin2)
+    #     uePin2 = integ.dblquad(ueintfunc, 0, v0, lambda x: 0, bvrmax, args=args2)[0]
+    #     cfraqb = np.append(cfraqb, uePin2)
 
-    pl.plot(sl, cfraqb)
-    pl.show()
+    # pl.plot(sl, cfraqb)
+    # pl.show()
+
