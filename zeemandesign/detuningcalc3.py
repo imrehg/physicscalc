@@ -1,29 +1,11 @@
-"""
-Trajectory calculation for the zeeman slower
-"""
 import numpy as np
 import pylab as pl
-
-import layeroptimize as lo
-import zeemanslower as zs
 import sys
 
-from scipy.integrate import odeint
-import time
-
-def eqmotion(y, t, b):
-    atom, field, s, detu = b
-    B = field([y[0]])[0]
-    dy = y[1]
-    ddy = -zs.hbar*atom.k*atom.G/(2*atom.m) * s / (1 + s + (4 / atom.G**2)*(detu + k * y[1] - zs.uprimehbar*B)**2)
-    return [dy, ddy]
-
-
-def fly(args):
-    print "Starting:", y[1]
-    y0, t, b  = args
-    y = odeint(eqmotion, y0, t, args=(b,))
-    return y
+# Own modules
+import layeroptimize as lo
+import zeemanslower as zs
+import detuningcalc2 as dc
 
 fw, fh = (11.69, 8.27)
 
@@ -53,8 +35,8 @@ if __name__ == "__main__":
     # # pl.plot(ze, bf)
     # pl.plot(ze[1:], np.diff(bf))
 
-    series = 4
-    ratio = 1
+    series = 0
+    ratio = 0.5
 
     setup['csign'] = [s*ratio if s < 0 else s for s in setup['csign']]
     # setup['csign'] = [s*ratio if s < 0 else s*ratio for s in setup['csign']]
@@ -96,38 +78,54 @@ if __name__ == "__main__":
 
     tmax = 1.5/vf
     t = np.linspace(0, tmax, 1001)
-    s = 2
+    s = 0
     detuw = -2*np.pi*detu*1e6
-    field = lambda z: lo.fieldcalc(z, setup)*I
+    # field = lambda z: lo.fieldcalc(z, setup)*I
+    field = lambda z: zs.bideal(atom, z, eta, v0, vf, detuning=detu)
     b = (atom, field, s, detuw)
 
     out = []
     # for v in np.linspace(v0, vf, 1):
     vlist = np.linspace(v0, vf, 15)
-    vlist = np.linspace(v0, vf, 1)
     # vlist = np.linspace(1, 1, 1)
     # vlist = [v0/2]
     z0 = -0.3
 
     zv = np.linspace(z0, ze[-1], 1000)
     vfield = (zs.uprimehbar*field(zv)-detuw)/k
-    pl.plot(zv, vfield, 'k-', linewidth=4, label='$\delta = 0$ velocity')
+    # pl.plot(zv, vfield, 'k-', linewidth=4, label='$\delta = 0$ velocity')
+    
+    B = field(zv)
+    dBdz = np.diff(B)/np.diff(zv)
+    B = B[1:]
+    zB = zv[1:]
 
+    # print field([0.54])
+    pl.plot(zB, dBdz)
+    zz = []
+    dd = []
+    # for i in range(len(B)):
+    #     params = atom, detu, s, B[i], dBdz[i]
+    #     res = dc.getzeros(params)
+    #     if (res.imag.nonzero()[0].size > 0):
+    #         # print "Not good?", res
+    #         continue
+    #     else:
+    #         resn = res[res < 0]
+    #         valx = np.argmax(resn)
+    #         zz += [zB[i]]
+    #         dd += [resn[valx]]
 
-    for v in vlist:
-        print "Velocity: %.1f" %(v)
-        start = time.time()
-        y0 = [-0.3, v]
-        y = odeint(eqmotion, y0, t, args=(b,))
-        # pl.plot(y[:,0], y[:, 1], label="v=%.1f" %(v))
-        pl.plot(y[:,0], y[:, 1], linewidth=2)
-        out += [y]
-        print "Elapsed: %.1fs" %(time.time()-start) 
+    # pl.plot(zz, dd, '.')
+    # def getzeros(params):
+    # atom, detu, s, B, dBdz = params
+    
+
 
     pl.xlim([z0, ze[-1]])
-    pl.ylim([0, v0+20])
+    # pl.ylim([0, v0+20])
 
-    np.savez(filename, vlist, out)
+    # np.savez(filename, vlist, out)
     # pl.plot(ze, x)
     # pl.plot(ze, y)
     # pl.plot([0], [v0], 'x')
@@ -139,7 +137,6 @@ if __name__ == "__main__":
     pl.legend(loc="best")
 
     pl.title("Negative coil current scaling factor= %g, saturation parameter= %g" %(ratio, s), fontsize=15)
-    pl.savefig("%s_%d.pdf" %(filename, series))
-    pl.savefig("%s_%d.png" %(filename, series))
+    # pl.savefig("%s_%d.pdf" %(filename, series))
+    # pl.savefig("%s_%d.png" %(filename, series))
     pl.show()
-

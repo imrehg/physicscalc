@@ -29,9 +29,9 @@ bfield = zs.bideal(atom, z, eta, v0, vf, detu)
 z = np.append([-10*R], np.append(np.linspace(0, sl, 61), [sl+10*R]))
 ze = np.linspace(z[0], z[-1], 201)
 
-ratio = 0.25
+ratio = 1
 filename = 'trajectory01.npz'
-simed = False
+simed = True
 if simed:
     setup['csign'] = [s*ratio if s < 0 else s for s in setup['csign']]
     # Get the needed current to run the coils:

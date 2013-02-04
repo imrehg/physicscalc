@@ -200,10 +200,10 @@ if __name__ == "__main__":
     # The field that we want to match
     nz = 61
     atom = zs.Rb85()
+    v0 = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
+    print v0
     sl = zs.slowerlength(atom.aslow, eta, v0, vf)
     z = np.append([-5.5*R], np.append(np.linspace(0, sl, nz-2), sl+5.5*R))
-    v0 = np.sqrt(2 * l2 * atom.aslow * eta + vf**2)
-
 
     # bfield = zs.bideal(atom, z, eta, v0, vf, detu)
 

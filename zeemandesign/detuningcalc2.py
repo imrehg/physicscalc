@@ -14,7 +14,7 @@ import zeemanslower as zs
 ## Check whether it is actually working well
 from math import *
 def polyCubicRoots(a,b, c):
-    print "input=", a,b,c
+    # print "input=", a,b,c
     aby3 = a / 3.0
     p = b - a*aby3
     q = (2*aby3**2- b)*(aby3) + c
@@ -22,7 +22,7 @@ def polyCubicRoots(a,b, c):
     Y = (q/2.0)**2
     Q = X + Y
     D = 18*a*b*c-4*a**3*c+a**2*b**2-4*b**3-27*c**2
-    print "Q=", Q, D
+    # print "Q=", Q, D
     if Q >= 0:
        sqQ = sqrt(Q)
        A0 = -q/2.0 + sqQ
@@ -38,7 +38,7 @@ def polyCubicRoots(a,b, c):
        # This part has been tested.
        p3by27= sqrt(-p**3/27.0)
        costheta = -q/2.0/ p3by27
-       print "@@@ costheta=", costheta
+       # print "@@@ costheta=", costheta
        alpha = acos(costheta)
        mag = 2 * sqrt(-p/3.0)
        alphaby3 = alpha/3.0
@@ -91,10 +91,16 @@ if __name__ == "__main__":
     v0 = 254
     vf = 30
     eta = 0.5
-    z0 = 0
+    # z0 = 0
+    # vmin, vmax = 230, 270
+
+    z0 = zs.slowerlength(atom.aslow, eta, v0, vf)
+    z0 = 0.5683
+    vmin, vmax = 3, 130
+
+
     detu = -175*1e6*2*np.pi
-    B0 = zs.bideal(atom, z0, eta, v0, vf, detu/(-2e6*np.pi))
-    vmin, vmax = 230, 270
+    B0 = zs.bideal(atom, [z0], eta, v0, vf, detu/(-2e6*np.pi))
     vrange = np.linspace(vmin, vmax, 50000)
     delta = atom.k*vrange + detu - zs.uprimehbar * B0
     s = eta/(1-eta)
@@ -102,11 +108,11 @@ if __name__ == "__main__":
     print s
     a = -zs.hbar*atom.k*atom.G/(2*atom.m) * s/(1 + s + 4*delta**2 / atom.G**2)
     dz = 0.001
-    B = zs.bideal(atom, z0, eta, v0, vf, detu/(-2e6*np.pi))
+    B = zs.bideal(atom, [z0], eta, v0, vf, detu/(-2e6*np.pi))
     dBdz = np.diff(zs.bideal(atom, [z0, z0+dz], eta, v0, vf, detu/(-2e6*np.pi)))/dz
     # dBdz = 0
     # dBdz = zs.hbar*atom.k*atom.G/(2*atom.m) * s/(1 + s)
-    print dBdz
+    print B, dBdz
     ddeltaz = atom.k*a/vrange - zs.uprimehbar*dBdz
     # pl.plot(vrange, delta)
     i = np.argmin(ddeltaz)
@@ -117,30 +123,30 @@ if __name__ == "__main__":
     ax1 = fig.add_subplot(111)
     ax1.plot(delta/atom.G, ddeltaz/atom.G, 'k-', linewidth=5)
     ax1.plot([delta[0]/atom.G, delta[-1]/atom.G], [0, 0], 'k--', linewidth=2)
-    ax1.set_xlim([delta[0]/atom.G, delta[-1]/atom.G])
+    # ax1.set_xlim([delta[0]/atom.G, delta[-1]/atom.G])
     ax1.set_xlabel("Detuning $\delta$ (units of $\Gamma$)", fontsize=16)
     ax1.set_ylabel("Gradient $\partial \delta / \partial z$ (units of $\Gamma$/m)", fontsize=16)
     ax1.tick_params(labelsize='large')
-    ax1.set_ylim([-50, 50])
+    # ax1.set_ylim([-50, 50])
 
     params = atom, detu, s, B, dBdz
     roots = getzeros(params)
-    for x in roots:
-        if x > 0:
-            dx = 50
-        else:
-            dx = -50
-        pl.annotate("%.3f" %(x), (x, -3),  xycoords='data', xytext=(dx, -20), textcoords='offset points', arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90,rad=10"), ha='center', fontsize=14)
-        # pl.plot(x, 0, 'bs', markersize=10)
+    # for x in roots:
+    #     if x > 0:
+    #         dx = 50
+    #     else:
+    #         dx = -50
+    #     pl.annotate("%.3f" %(x), (x, -3),  xycoords='data', xytext=(dx, -20), textcoords='offset points', arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90,rad=10"), ha='center', fontsize=14)
+    #     # pl.plot(x, 0, 'bs', markersize=10)
 
 
-    pl.arrow(-1.4, 45, 0.7, 0, color='k', width=1.0, head_width=3.0, head_length=0.1)
-    pl.arrow(0.4, 45, -0.7, 0, color='k', width=1.0, head_width=3.0, head_length=0.1)
-    pl.arrow(0.6, 45, 0.7, 0, color='k', width=1.0, head_width=3.0, head_length=0.1)
-    x1 = roots[0]
-    x2 = roots[1]
-    pl.plot([x1, x1], [-50, 50], 'k:')
-    pl.plot([x2, x2], [-50, 50], 'k:')
+    # pl.arrow(-1.4, 45, 0.7, 0, color='k', width=1.0, head_width=3.0, head_length=0.1)
+    # pl.arrow(0.4, 45, -0.7, 0, color='k', width=1.0, head_width=3.0, head_length=0.1)
+    # pl.arrow(0.6, 45, 0.7, 0, color='k', width=1.0, head_width=3.0, head_length=0.1)
+    # x1 = roots[0]
+    # x2 = roots[1]
+    # pl.plot([x1, x1], [-50, 50], 'k:')
+    # pl.plot([x2, x2], [-50, 50], 'k:')
 
 
 

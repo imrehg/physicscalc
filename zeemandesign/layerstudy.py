@@ -124,7 +124,7 @@ if __name__ == "__main__":
     v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
     print("Max capture velocity: %g" %(v0))
 
-    # sys.exit(0)
+    sys.exit(0)
 
     # Sim parameters
     maxtry = 30000

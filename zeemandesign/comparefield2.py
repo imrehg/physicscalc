@@ -78,14 +78,16 @@ for i in range(len(looppos)):
     if i > 239:
         looppos[i] += delta
 cstart = looppos[segments[1][0]]
+cend = looppos[segments[-1][0]]
+print segments[-1][0]
 
 eta, v0, vf, detu, R = sim['eta'], sim['v0'], sim['vf'], sim['detu'], sim['R']
 sl = zs.slowerlength(atom.aslow, eta, v0, vf)
 z = np.array([0])
 bfield = zs.bideal(atom, z, eta, v0, vf, detu)
 z = np.append([-5.5*R], np.append(np.linspace(0, sl, 61), [sl+5.5*R]))
-ze = np.linspace(z[0], z[-1], 201)
-print ze[0], ze[-1]
+# ze = np.linspace(z[0], z[-1], 201)
+# print ze[0], ze[-1]
 
 # delta2 = 0.008
 delta2 = 0
@@ -93,19 +95,48 @@ zstart = -0.019
 zadjust = -0.019-0.058+cstart+delta2
 zpos = mesdata[:, 0]/100 + zadjust
 mesfield = mesdata[:, 1]
+zp = -0.019 - 0.058
+zn = cend + 0.045
+print "Slower tube length:", zn-zp
+ze = np.linspace(zp-0.07, zn+0.25, 1001)
+
+zex = ze
+xfield = zex*0
+for c in coils:
+    R = R0 + (c[2]-0.5)*wthick
+    pos = np.linspace(c[0], c[1], c[3])
+    print c
+    for p in pos:
+        xfield += lo.loopfield(zex-p, 1, R, wthick)*c[4]*1e4
 
 
 
 pl.figure(figsize=(11.69, 8.27))
 pl.plot(ze, lo.fieldcalc(ze, setup)*current * 1e4, 'r-', linewidth=3, label='Simulation with calculated positions')
-pl.plot(zex+zstart, xfield*current, 'b-', linewidth=3, label='Simulation with measured positions')
-pl.plot(zpos, mesfield, 'ko', label='Measured')
+pl.plot(zex+zstart, xfield*current, 'b--', linewidth=3, label='Simulation with measured positions')
+pl.plot(zpos, mesfield, 'ko', markersize=10, label='Measured')
 pl.xlabel("Position (m)", fontsize=16)
 pl.ylabel("Field (G)", fontsize=16)
-pl.legend(loc='upper right')
 pl.title(title)
+pl.xlim([ze[0], ze[-1]])
+pl.plot([zp, zp], [-100, 100], 'k-.', linewidth=4, label='Slower tube end')
+pl.plot([zn, zn], [-100, 100], 'k-.', linewidth=4)
+pl.legend(loc='upper right')
 
-pl.savefig("%s.pdf" %(outname))
-pl.savefig("%s.png" %(outname))
+Bget = lambda z : lo.fieldcalc(z, setup)*current * 1e4
+zlist = [zp-0.07, zp-0.035, zp, zn, zn+0.035, zn+0.07]
+Blist = ["%.1f" %Bget([z])[0] for z in zlist]
+print Blist
+
+# pl.savefig("%s.pdf" %(outname))
+# pl.savefig("%s.png" %(outname))
+
+pl.figure()
+posz = zex+zstart
+fieldz = xfield*current
+poszc = posz[posz >= zn]
+fieldzc = fieldz[posz >= zn]
+pl.plot(poszc, fieldzc, 'b--', linewidth=3, label='Simulation with measured positions')
+np.savetxt('outside.csv', zip(poszc, fieldzc))
 
 pl.show()
