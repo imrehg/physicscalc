@@ -1,3 +1,7 @@
+"""
+Optimizing the Zeeman slower arrangement and save results
+Set parameters inside the software for the slower
+"""
 import numpy as np
 import pylab as pl
 import sys
@@ -7,6 +11,29 @@ import zeemanslower as zs
 from layeroptimize import *
 
 def dowire(inparam):
+    """ Run the wire simulation
+
+    Input parameters:
+    inparam = (params, wire, nlayer, simparam)
+
+    * params is a dictionary with keys:
+    'R': inner radius in m
+    'eta': efficincy
+    'v0': final velocity in m/s
+    'vf': max capture velocity in m/s
+    'sl': slower length in m
+    'detu': red detuning in MHz (meaning e.g. -100MHz detuning fom resonance is detu=100)
+    'atom': type of atom slowed, as in zeemanslower.py
+
+    * wire: type of wire (just like in wires.py)
+
+    * nlayer: max number of layers
+
+    * simparam is a dictonary with keys:
+    'maxtry': integer, maximum rounds of simulation, the total "time" of simulated annealing
+    'series': integer, numerical counter for the simulation, used for the output name
+    'printprogress': boolean, whether to show simulation rounds as they are done
+    """
     params, wire, nlayer, simparam = inparam
     R = params['R']
     eta = params['eta']
@@ -37,9 +64,8 @@ def dowire(inparam):
              }
     print("Optimize: %s, %d layer" %(wire[2], nlayer))
     newsetup = optimize(z, bfield, setup, maxtry=maxtry, printprogress=printprogress)
-    # newsetup = setup
-    # pl.plot(z, bfield, 'x')
     ze = np.linspace(z[0], z[-1], 201)
+
     pl.figure(figsize=(11.69, 8.27))
     pl.plot(ze, fieldcalc(ze, newsetup)/fieldcalc(0, newsetup), 'r-', linewidth=2, label='coil field')
     pl.plot(z, bfield/bfield[1], 'ko', markersize=5, label='target field')
@@ -47,8 +73,6 @@ def dowire(inparam):
     pl.xlabel('position (m)')
     pl.ylabel('normalized magnetic field')
     pl.legend(loc='best')
-    # pl.plot(zz, normalize(fieldcalc(zz, newsetup), 10), 'r-')
-    # print newsetup['segments']
 
     simulation = {'R': R,
                   'eta': eta,
@@ -58,7 +82,6 @@ def dowire(inparam):
                   'wire': wire,
                   'setup': newsetup
                   }
-
     savefile = "%d_%s_%d" %(series, wire[2], nlayer)
     np.savez('%s' %(savefile), simulation=simulation)
     pl.savefig('%s.png' %(savefile))
@@ -68,70 +91,20 @@ if __name__ == "__main__":
     import multiprocessing as processing
     import itertools
 
-    # # design parameters
-    # atom = zs.Rb85()
-    # R = 0.03 / 2 # larger diameter slower tube
-    # eta = 0.5 # efficiency
-    # Ls = 0.6 # set slower length
-    # vf = 30
-    # detu = 160
-    # series = 3
-    # ## Derived parameters
-    # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
-    # print("Max capture velocity: %g" %(v0))
-
-    # # design parameters
-    # atom = zs.Rb87()
-    # R = 0.020 / 2
-    # eta = 0.5 # efficiency
-    # Ls = 0.6 # set slower length
-    # # Ls = 0.595 # set slower length
-    # vf = 30
-    # detu = 160
-    # series = 14
-    # ## Derived parameters
-    # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
-    # print("Max capture velocity: %g" %(v0))
-
-    # # design parameters
-    # atom = zs.K41()
-    # # R = 2.75 * 2.54e-2 / 2 # 2.75" slower tube
-    # R = 6e-3
-    # eta = 0.7 # efficiency
-    # Ls = 0.6 # set slower length
-    # vf = 30
-    # v0 = 395
-    # detu = 280
-    # series = 9
-    # # Ls = 0.6 - 2*0.07
-    # ## Derived parameters
-    # Ls = zs.slowerlength(atom.aslow, eta, v0, vf)
-    # print("Slower length: %g" %(Ls))
-    # # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
-    # # print("Max capture velocity: %g" %(v0))
-
     # design parameters
-    atom = zs.Rb87()
-    R = 0.019 / 2
-    eta = 0.5 # efficiency
-    Ls = 0.59 # set slower length
-    # Ls = 0.584 # set slower length
-    # Ls = 0.595 # set slower length
-    vf = 30
-    detu = 175
-    series = 19
+    atom = zs.Rb87()  # chosen atom
+    R = 0.019 / 2  # inner radius
+    eta = 0.5  # efficiency
+    Ls = 0.59  # set slower length m
+    vf = 30  # final velocity m/s
+    detu = 175  # red detuning MHz
+    series = 20  # name
     ## Derived parameters
     v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
     print("Max capture velocity: %g" %(v0))
 
-    sys.exit(0)
-
     # Sim parameters
     maxtry = 30000
-
-    # ## Derived parameters
-    # v0 = np.sqrt(2 * Ls * atom.aslow * eta + vf**2)
-    # print("Max capture velocity: %g" %(v0))
 
     input_params = {'R': R,
                     'eta': eta,
@@ -146,17 +119,13 @@ if __name__ == "__main__":
                 'printprogress': False,
                 }
 
+    ## Previously used options
     # wirelist = wires.AWG
     # wirelist = wirelist[0:15]
 
     # Use enamel coated AWG12 wire
     wirelist = [(2.1e-3, 5.211e-3, "AWG12Coat")]
 
-
-    # wirelist = wirelist[17:18]
-    # print wirelist
-    # sys.exit(0)
-    # maxlayers = range(5, 11)
     maxlayers = range(5, 16)
     TASKS = [(input_params, x[0], x[1], simparam) for x in itertools.product(wirelist, maxlayers)]
 
@@ -168,5 +137,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pool.terminate()
         sys.exit(0)
-
-    # pl.show()
