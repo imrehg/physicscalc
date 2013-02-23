@@ -8,23 +8,29 @@ import pylab as pl
 import scipy.odr as odr
 from time import strftime
 
-mu0 = 1.257e-6 # Tm/A
-# R0 = 0.0383
-# # R0 = 0.025
-# d0 = 0.008
+mu0 = 1.257e-6 # unit: Tm/A
+
+# #### 'setup' structure
+# setup = {'looppos': the vire loops' positions,
+#          'segment': the segments by indexes of loop positions
+#          'layer': the layer number for a segment,
+#          'csign': the sign of the current (for direction of B field,
+#          'R': inner radius, m,
+#          'd': wire diameter
+#          }
 
 class memoized(object):
-   """Decorator that caches a function's return value each time it is called.
-   If called later with the same arguments, the cached value is returned, and
-   not re-evaluated.
+    """Decorator that caches a function's return value each time it is called.
+    If called later with the same arguments, the cached value is returned, and
+    not re-evaluated.
 
-   TODO: add keyword arguments:
-   http://pko.ch/2008/08/22/memoization-in-python-easier-than-what-it-should-be/
-   """
-   def __init__(self, func):
-      self.func = func
-      self.cache = {}
-   def __call__(self, *args):
+    TODO: add keyword arguments:
+    http://pko.ch/2008/08/22/memoization-in-python-easier-than-what-it-should-be/
+    """
+    def __init__(self, func):
+       self.func = func
+       self.cache = {}
+    def __call__(self, *args):
       try:
          return self.cache[args]
       except KeyError:
@@ -35,28 +41,39 @@ class memoized(object):
          # uncachable -- for instance, passing a list as an argument.
          # Better to not cache than to blow up entirely.
          return self.func(*args)
-   def __repr__(self):
-      """Return the function's docstring."""
-      return self.func.__doc__
-   def __get__(self, obj, objtype):
-      """Support instance methods."""
-      return functools.partial(self.__call__, obj)
+    def __repr__(self):
+       """Return the function's docstring."""
+       return self.func.__doc__
+    def __get__(self, obj, objtype):
+       """Support instance methods."""
+       return functools.partial(self.__call__, obj)
 
 @memoized
 def loopfield(pos, n, R, d):
-    """ Magnetic field by a multilayer loop """
+    """ Magnetic field by a multilayer loop
+
+    pos: z position to along the axis where to calculate, m
+    n: number of layers, integer
+    R: inner radius, m
+    d: wire diameter
+    """
     x = np.array(pos)
     Ri = R
     if n < 1:
-        return x*0
+       return x*0
     field = mu0 * Ri*Ri / (2 * (Ri*Ri+x*x) ** (1.5))
     for i in xrange(1, n):
-        Ri += d
-        field += mu0 * Ri*Ri / (2 * (Ri*Ri+x*x) ** (1.5))
+       Ri += d
+       field += mu0 * Ri*Ri / (2 * (Ri*Ri+x*x) ** (1.5))
     return field
 
 def coillength(n, R, d):
-    """ Approximate length of wires in a single multiple layer setting """
+    """ Approximate the length of wires in a single multiple layer setting
+
+    n: number of layers, intger
+    R: inner radius, m
+    d: wire diamater
+    """
     Ri = R
     if n < 0:
         return 0
@@ -67,11 +84,23 @@ def coillength(n, R, d):
     return length
 
 def totalcoillength(setup, R, d):
+    """ Calculate total coil length
+ 
+    setup: Zeeman slower layer arrangement as in the rest of the functions
+    R: inner radius, m
+    d: wire diameter, m
+    """
     layernum, csign = getLayerNumber(setup)
     cl = sum([coillength(layer, R, d) for layer in layernum])
     return cl
 
 def fieldcalc(z, setup, curr=1):
+    """ Calculate magnetic field for the wire arrangement
+
+    z: position along the z axis
+    setup: Zeeman slower layer arrangement
+    curr: current, A (default=1)
+    """
     R = setup['R']
     d = setup['d']
     if type(z) == type(1):
@@ -87,21 +116,10 @@ def fieldcalc(z, setup, curr=1):
         out += multi*loopfield(tuple(z-czi), int(di), R, d)
     return out
 
-# def bideal(z):
-#     C1 = 0.015
-#     C2 = 0.03
-#     C3 = 1
-#     C4 = 1.13
-#     return -(C1 - C2 * np.sqrt(C3**2  - C4 * z))    
-
-# def bideal2(z):
-#     extra = 5
-#     zextra = np.append(np.append(-extra*R0+z[0], z), z[-1]+extra*R0)
-#     field = normalize(np.append(np.append(0, bideal(z)), 0), 1)
-#     return (zextra, field)
-
 def getLayerNumber(setup):
-    """ Calculate the number of layers at the different loop positions """
+    """ Calculate the number of layers at the different
+    loop positions from the Zeeman slower setup
+    """
     out = []
     outlayer = []
     for si, seglim in enumerate(setup['segments']):
@@ -119,10 +137,18 @@ def ssq(val):
     return np.sqrt(np.sum(val**2))
 
 def seglen(segment):
+    """ Calculate length of a segment """
     return segment[1] - segment[0]
 
 def optimize(zideal, fideal, setup, maxtry=100, printprogress=True):
-    # zideal, fideal = bideal2(zl)
+    """ Run optimization routine: simulated annealing
+
+    zideal: positions where the idea field is calculated, along the z axis, m
+    fideal: field valies at the zideal positions, G
+    setup: Zeeman slower layer arrangement
+    maxtry: maximum number of simulation rounds, integer, default=100
+    printprogress: print the the number of tries as the program proceeds, boolean, default=True
+    """
     fideal = fideal/fideal[1]
     foriginal = fieldcalc(zideal, setup)/fieldcalc(0, setup)
 
@@ -173,6 +199,12 @@ def optimize(zideal, fideal, setup, maxtry=100, printprogress=True):
     return setup
 
 def createStruct(z, d0, n):
+    """ Create simulation helper values from basic parameters
+
+    z: coil z position, (start, end), m
+    d0: wire diameter
+    n: maximum layers
+    """
     coilpos = (z[0], z[1])
     nloops = int((coilpos[1] - coilpos[0]) / d0)
     loops = [coilpos[0]+i*d0 for i in xrange(nloops)]
